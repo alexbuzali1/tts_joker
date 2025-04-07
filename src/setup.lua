@@ -1,11 +1,10 @@
---8 Player Button
---GUID: fa9491
+--#include "constants.lua"
 
-function onLoad()
-        self.createButton({
-        click_function = "load8Player",  -- Function to call when button is clicked
+function buttonSetup(object,click_function,label)
+    self.createButton({
+        click_function = click_function,  -- Function to call when button is clicked
         function_owner = self,                   -- The object that owns the function
-        label = "8 Player",                      -- Text on the button
+        label = label,                      -- Text on the button
         position = {0, 0.2, 0},                  -- Position relative to the chip
         rotation = {0, 90, 0},                  -- Rotation (usually face up)
         width = 600,                             -- Button width
@@ -15,31 +14,19 @@ function onLoad()
     self.setName('8 Player Button')
     self.locked = true
     self.setColorTint({0, 0, 0, 0})
-    self.tooltip = false    
-
-end
-
-function load8Player()
-    print('Loading 8 Player Game')
-    destroyButtons()
-    loadCircleMat()
-    Global.call("setTableShape",{shape="Octagon"})
-
-    local eightPlayerBoard = getObjectFromGUID("786755")
-    eightPlayerBoard.call("setup")
-
+    self.tooltip = false 
 end
 
 function destroyButtons()
-    destroyObject(getObjectFromGUID("3acad9"))
-    destroyObject(getObjectFromGUID("34e910"))
-    destroyObject(getObjectFromGUID("fa9491"))
+    destroyObject(getObjectFromGUID(FOUR_PLAYER_BUTTON_GUID))
+    destroyObject(getObjectFromGUID(SIX_PLAYER_BUTTON_GUID))
+    destroyObject(getObjectFromGUID(EIGHT_PLAYER_BUTTON_GUID))
 end
 
-function loadCircleMat()
+function changeMatShape(shapeNumber)
     local hexMat = getObjectFromGUID("b62603")
     local data = hexMat.getData()
-    data["CustomImage"]["CustomTile"]["Type"] = 2
+    data["CustomImage"]["CustomTile"]["Type"] = shapeNumber
     spawnObjectJSON({json = JSON.encode(data)})
     destroyObject(hexMat)
 end

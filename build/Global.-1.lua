@@ -2,8 +2,7 @@
 
 --[[ The onLoad event is called after the game save finishes loading. --]]
 function onLoad()
-    print('Welcome to Joker!') 
-    print('test')
+    print('Welcome to Joker!')  
 end
 
 --[[ The onUpdate event is called once per frame. --]]

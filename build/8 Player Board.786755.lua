@@ -1,7 +1,6 @@
 function onLoad()
     self.setName('8 Player Board')
     self.setScale({0.01,0.01,0.01})
-    -- self.setScale({1.7,1.7,1.7})
 end
 
 function setup()
