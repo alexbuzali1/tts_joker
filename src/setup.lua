@@ -1,4 +1,5 @@
 --#include "constants.lua"
+--#include "board.lua"
 
 function buttonSetup(object,click_function,label)
     self.createButton({
@@ -29,4 +30,36 @@ function changeMatShape(shapeNumber)
     data["CustomImage"]["CustomTile"]["Type"] = shapeNumber
     spawnObjectJSON({json = JSON.encode(data)})
     destroyObject(hexMat)
+end
+
+function loadGame(numPlayers)
+
+    print("Loading " .. numPlayers .. " player game")
+    
+    --Change table and mat
+    changeMatShape(MAT_SHAPES[numPlayers])
+    Global.call("setTableShape",{shape=TABLE_SHAPES[numPlayers]})
+
+    --Create board
+    createBoard(numPlayers)
+
+    local startPoints, boardPoints = getBoardPoints(numPlayers)
+
+    --Set snap points
+    Global.setSnapPoints(boardPoints)
+
+    --Spawn marbles
+    for i = 1,numPlayers*5 do
+        spawnObject({
+            type = "Red Ball",
+            position = startPoints[i]["position"],
+            scale = {MARBLE_SCALES[numPlayers],MARBLE_SCALES[numPlayers],MARBLE_SCALES[numPlayers]},
+            callback_function = function(obj)
+                obj.setColorTint(MARBLE_COLORS[math.floor((i-1)/5)+1]) 
+            end
+        })
+    end 
+
+    --Destroy buttons
+    destroyButtons()
 end

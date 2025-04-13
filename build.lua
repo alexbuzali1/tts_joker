@@ -1,74 +1,87 @@
+-- build.lua
+-- Automatically builds Lua scripts from src/, supports recursive --#include, relative paths, 3D folder structure, and outputs to build/
+
 local lfs = require("lfs")
 
--- === CONFIG ===
+-- === CONFIGURATION ===
 local SOURCE_DIR = "src"
 local BUILD_DIR = "build"
 
--- === File Helpers ===
+-- === FILE HELPERS ===
 local function readFile(path)
+    print("🔍 Reading file:", path)
     local file = io.open(path, "r")
-    if not file then error("Cannot open file: " .. path) end
+    if not file then error("❌ Cannot open file: " .. path) end
     local content = file:read("*a")
     file:close()
     return content
 end
 
 local function writeFile(path, content)
-    -- Flatten to build/<filename>.lua (no folder structure)
-    local fileName = path:match("([^/\\]+)%.lua$")
-    local file = io.open(BUILD_DIR .. "/" .. fileName .. ".lua", "w")
-    if not file then error("Cannot write to file: " .. path) end
+    local filename = path:match("([^/\\]+%.lua)$")
+    local outputPath = BUILD_DIR .. "/" .. filename
+    local file = io.open(outputPath, "w")
+    if not file then error("❌ Cannot write to: " .. outputPath) end
     file:write(content)
     file:close()
+    print("✅ Output -> " .. outputPath)
 end
 
--- === Recursive Include Processor ===
-local function processIncludes(code, visited)
+-- === INCLUDE PROCESSOR ===
+local function processIncludes(code, visited, currentDir)
     visited = visited or {}
+    currentDir = currentDir or SOURCE_DIR
 
     return code:gsub('%-%-#include%s+"(.-)"', function(includePath)
-        if visited[includePath] then
-            return "-- (already included: " .. includePath .. ")"
+        local fullPath = currentDir .. "/" .. includePath
+
+        -- Normalize path
+        fullPath = fullPath:gsub("/%./", "/")
+        while fullPath:find("[^/]+/%.%./") do
+            fullPath = fullPath:gsub("[^/]+/%.%./", "")
         end
 
-        visited[includePath] = true
-        print("Including: " .. includePath)
+        if visited[fullPath] then
+            return "-- already included: " .. includePath
+        end
 
-        local fullPath = SOURCE_DIR .. "/" .. includePath
+        visited[fullPath] = true
+
+        print("📥 Including: " .. fullPath)
         local includedCode = readFile(fullPath)
-        includedCode = processIncludes(includedCode, visited)
-
+        local includeDir = fullPath:match("(.*/)")
         return "-- Begin include: " .. includePath .. "\n"
-            .. includedCode ..
-            "\n-- End include: " .. includePath
+            .. processIncludes(includedCode, visited, includeDir)
+            .. "\n-- End include: " .. includePath
     end)
 end
 
--- === Recursive File Finder ===
-local function findLuaFiles(folder, files)
+-- === RECURSIVE FILE FINDER ===
+local function findLuaFiles(folder, out)
+    out = out or {}
     for file in lfs.dir(folder) do
         if file ~= "." and file ~= ".." then
             local fullPath = folder .. "/" .. file
             local attr = lfs.attributes(fullPath)
             if attr.mode == "file" and file:match("%.lua$") then
-                table.insert(files, fullPath)
+                table.insert(out, fullPath)
             elseif attr.mode == "directory" then
-                findLuaFiles(fullPath, files)
+                findLuaFiles(fullPath, out)
             end
         end
     end
+    return out
 end
 
--- === Build ===
+-- === BUILD START ===
 os.execute("mkdir -p " .. BUILD_DIR)
 
-local luaFiles = {}
-findLuaFiles(SOURCE_DIR, luaFiles)
+local luaFiles = findLuaFiles(SOURCE_DIR)
 
 for _, filePath in ipairs(luaFiles) do
-    print("🔨 Building: " .. filePath)
-    local code = readFile(filePath)
-    local processed = processIncludes(code)
+    print("\n🔨 Building: " .. filePath)
+    local content = readFile(filePath)
+    local currentDir = filePath:match("(.*/)")
+    local processed = processIncludes(content, {}, currentDir)
     writeFile(filePath, processed)
-    print("✅ Output -> " .. BUILD_DIR)
 end
