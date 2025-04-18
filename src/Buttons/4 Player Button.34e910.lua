@@ -2,7 +2,7 @@
 --#include "../constants.lua"
 
 function onLoad()
-    buttonSetup(self,"load4Player","4 Player")  
+    buttonSetup(self,"load4Player","4 Player",4)  
 end
 
 function load4Player()
