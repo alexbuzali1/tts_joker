@@ -1,9 +1,10 @@
 --#include "../setup.lua"
+--#include "../buttons.lua"
 
 function onLoad()
-    buttonSetup(self,"load8Player","8 Player",8)   
+    playerNumberButtonSetup(self,"load8Player","8 Player",'8 Player Button')   
 end
 
 function load8Player()
-    loadGame(8)
+    preGameSetup(8)
 end

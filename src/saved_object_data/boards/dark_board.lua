@@ -1,4 +1,4 @@
-lightBoardJSON = [[
+dark_board_JSON = [[
 {
       "GUID": "990ba6",
       "Name": "Custom_Model",
@@ -42,7 +42,7 @@ lightBoardJSON = [[
       "Hands": false,
       "CustomMesh": {
         "MeshURL": "https://steamusercontent-a.akamaihd.net/ugc/16432616709978613/DDFD15AF5E9D474A78E9879B6BD8B8E20ECDF1EC/",
-        "DiffuseURL": "https://steamusercontent-a.akamaihd.net/ugc/16432158165210463/F13758A7E268ABACCE9F7B29341B6ADD675F5C4A/",
+        "DiffuseURL": "https://steamusercontent-a.akamaihd.net/ugc/16432158165214925/BBD4B98054EA5B4FD9325E332B7AB1AC379E2CE7/",
         "NormalURL": "",
         "ColliderURL": "https://steamusercontent-a.akamaihd.net/ugc/16432158165211267/83126B855FA9E798F432672309C17CDD7940D115/",
         "Convex": false,

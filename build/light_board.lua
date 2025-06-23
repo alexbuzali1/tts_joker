@@ -1,4 +1,4 @@
-lightBoardJSON = [[
+light_board_JSON = [[
 {
       "GUID": "990ba6",
       "Name": "Custom_Model",

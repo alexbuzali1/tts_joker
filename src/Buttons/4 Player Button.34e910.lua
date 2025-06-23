@@ -1,10 +1,10 @@
 --#include "../setup.lua"
---#include "../constants.lua"
+--#include "../buttons.lua"
 
 function onLoad()
-    buttonSetup(self,"load4Player","4 Player",4)  
+    playerNumberButtonSetup(self,"load4Player","4 Player",'4 Player Button')  
 end
 
 function load4Player()
-    loadGame(4)
+    preGameSetup(4)
 end
