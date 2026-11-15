@@ -5,12 +5,14 @@
 #   test_bot_rules.lua    the rules: moves, bonks, the board model
 #   test_bot_search.lua   the bot's choices in set positions (including every fixed "flag bad move" report)
 #   test_bot_engine.lua   the level-10 engine
+#   check_wiring.py       every function TTS calls by name (XML buttons, Global.call, button click functions) exists
 # Exits non-zero if anything fails.
 set -e
 cd "$(dirname "$0")/.."
 lua build.lua > /dev/null
 for f in build/*.lua; do luac -p "$f"; done
 status=0
+python3 tests/check_wiring.py || status=1
 for t in test_game test_bot_rules test_bot_search test_bot_engine; do
     out=$(lua "tests/$t.lua" 2>&1) || status=1
     summary=$(echo "$out" | grep -E "^passed|FAIL|lua:" | tail -5)
