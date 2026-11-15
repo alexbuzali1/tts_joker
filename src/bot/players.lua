@@ -31,7 +31,6 @@ BOT_THINK_TIME = BOT_THINK_TIME or 4.0  -- seconds of search per bot move
 -- difficulty, think time) and "Flag bad move" are the host's, through hidden chat commands (gamelog.lua, !bot help),
 -- or shown again with !dev on.
 BOT_DEV_UI = false
-BOT_SETTINGS_VERSION = 3   -- saved settings from older saves (other defaults) are ignored (stats.lua onLoad)
 
 
 -- every TTS player colour, for hiding the bots' cards from all of them
@@ -65,10 +64,13 @@ end
 function botAfter(seconds, fn) Wait.time(fn, seconds * botSpeed().t) end
 
 ------------------------------------------------------------------------
--- called from startGame()
+-- game start (setup.lua startGame -> Global.call("botOnGameStart")): who plays which seat
 ------------------------------------------------------------------------
+-- Empty seats become bots (every seat in all-bot mode). In hybrid mode they become in-person seats first
+-- (play/hybrid.lua), which are not bots. Then the bots are dealt their hands and the game log starts.
 function botOnGameStart(params)
     local N = params.num_players
+    hybridAssignSeats(N)
     -- cards still held from an earlier game: visible again (they were hidden from everyone while a bot held them)
     for _, cards in pairs(BOT_STATE.hands or {}) do
         for _, c in ipairs(cards) do pcall(function() if c ~= nil and not c.isDestroyed() then c.setInvisibleTo({}) end end) end
@@ -77,7 +79,7 @@ function botOnGameStart(params)
     BOT_SEEN, BOT_DECK_LAST = {}, nil                        -- level 10 card counting starts over
     local names = {}
     for _, color in ipairs(PLAYER_COLORS[N]) do
-        if BOT_ALL_SEATS or (not Player[color].seated and not (irlIsSeat and irlIsSeat(color))) then   -- (in-person seats: irl.lua)
+        if BOT_ALL_SEATS or (not Player[color].seated and not irlIsSeat(color)) then
             BOT_STATE.seats[color] = true
             BOT_STATE.hands[color] = {}
             table.insert(names, color)
@@ -92,6 +94,7 @@ function botOnGameStart(params)
         refreshGameUI()
         Wait.time(function() botDealInitialHands(N) end, 2.5)
     end
+    glogGameStart(N)
 end
 
 
@@ -228,7 +231,8 @@ local function botStashCard(color, card)
     botLayoutHand(color)
 end
 
-function botDrawCards(color, n, done)
+-- one card at a time, n times, then done()
+local function drawCards(color, n, done)
     if n <= 0 then if done then done() end return end
     local deck = botFindDeck()
     if not deck then
@@ -236,7 +240,7 @@ function botDrawCards(color, n, done)
         if done then done() end
         return
     end
-    local function after() Wait.time(function() botDrawCards(color, n - 1, done) end, 0.15) end
+    local function after() Wait.time(function() drawCards(color, n - 1, done) end, 0.15) end
     if deck.tag == "Deck" then
         deck.takeObject({
             position = botStashPosition(color, #BOT_STATE.hands[color]),
@@ -247,6 +251,15 @@ function botDrawCards(color, n, done)
         botStashCard(color, deck)
         after()
     end
+end
+
+-- A bot draws n cards from the deck (hidden in its hand), then done(). Logged as one "draw" event.
+function botDrawCards(color, n, done)
+    local before = #(BOT_STATE.hands[color] or {})
+    drawCards(color, n, function()
+        glogDraw(color, n, before)
+        if done then done() end
+    end)
 end
 
 -- Every bot holds 6 cards (user): at the start of every turn, a bot short of cards (an empty deck at its draw,
@@ -316,6 +329,7 @@ end
 function botSeatFromHuman(color)
     if BOT_STATE.seats[color] then return false, "that seat is already a bot" end
     if Player[color] and Player[color].seated then return false, "someone is sitting there" end
+    IRL.seats[color] = nil                               -- an in-person seat handed to a bot (hybrid mode)
     local cards = {}
     pcall(function()
         for _, obj in ipairs(Player[color].getHandObjects() or {}) do if obj.tag == "Card" then cards[#cards + 1] = obj end end

@@ -94,8 +94,8 @@ function startGame(num_players)
     --Empty seats: bots (or in-person seats in hybrid mode) - bot/players.lua botOnGameStart
     Global.call("botOnGameStart", {num_players = num_players})
 
-    --Post-game stats: start counting from zero
-    Global.call("statsReset", {num_players = num_players})
+    --A new game: stats from zero, no undo history (Global resetForNewGame)
+    Global.call("resetForNewGame", {num_players = num_players})
 
     --Create discard piles
     local discard_piles = createDiscardPiles(num_players)

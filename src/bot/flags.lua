@@ -35,6 +35,7 @@ function botRecordMove(color, seat, S, tokens, act)
         alternatives = alts,
     }
     while #h > BOT_HISTORY_SIZE do table.remove(h, 1) end
+    glogBotMove(color, seat, tokens, act)
 end
 
 function flagNoteChanged(player, value) FLAG_NOTES[player.color] = value end
