@@ -961,9 +961,9 @@ end
 
 print("== flag 47 (2026-11-14, 8 players): keep the parked marble, Joker the far one")
 do
-    -- the user's Joker: Sam (seat 5) has a marble parked on Evan's (seat 7) exit and another just out of start; Evan
-    -- has a marble in start. Friendly-bonking the far one sends it to Sam's entrance (and swcyolo on to his) and keeps
-    -- the parked one for Evan's free jump later: "I essentially gain a bonk".
+    -- a playtester's Joker: seat 5 has a marble parked on seat 7's exit and another just out of start; seat 7 has a
+    -- marble in start. Friendly-bonking the far one sends it to seat 5's entrance (and seat 3 on to its own) and keeps
+    -- the parked one for seat 7's free jump later: "I essentially gain a bonk".
     local board = { 'G4','G3','G5','R16','R8','R32','S0','G3','G5','G4','R75','R44','G5','S0','G4','G3','G5','R78','G4','R62',
                     'G5','G4','R116','G3','R86','G5','R130','R98','S0','G4','G5','R141','S0','G4','G3','G4','R134','G5','G3','G2' }
     local list = {}
@@ -971,7 +971,7 @@ do
     local S = JB.newState(8, list)
     local a = JS.choose(S, 1, { '$' }, { level = 9, time_limit = 2, rng = function() return 0.5 end })
     local tgt = a.bumpList and a.bumpList[1] and a.bumpList[1].idx
-    check(a.card == '$' and tgt == 25, "flag 47: the Joker lands on Sam's far marble, keeping the parked one (" .. a.text .. ")")
+    check(a.card == '$' and tgt == 25, "flag 47: the Joker lands on seat 5's far marble, keeping the parked one (" .. a.text .. ")")
 end
 
 print(string.format("\npassed %d, failed %d", passed, failed))

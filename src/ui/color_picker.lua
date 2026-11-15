@@ -97,7 +97,7 @@ local function onePickerXml(c)
         x[#x + 1] = '</HorizontalLayout>'
     end
     if tgt ~= c then                                       -- an in-person seat: its name
-        x[#x + 1] = string.format('<InputField id="pickName_%s" onEndEdit="pickerName" fontSize="17" preferredHeight="34" placeholder="Name (e.g. Sam)" text="%s"/>',
+        x[#x + 1] = string.format('<InputField id="pickName_%s" onEndEdit="pickerName" fontSize="17" preferredHeight="34" placeholder="Name (e.g. Pat)" text="%s"/>',
             c, xmlEscape(IRL and IRL.names and IRL.names[tgt] or ""))
     end
     -- the colour square

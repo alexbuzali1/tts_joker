@@ -103,7 +103,7 @@ function botSeatIndex(color)
 end
 
 
--- "Blue marble" for a bot's marble, "donkachu's marble" for a human's; in the marble colour for chat
+-- "Blue marble" for a bot's marble, "Alice's marble" for a person's; in the marble colour for chat
 function marbleOwnerText(color)
     local hex = colorHex(nameColorOnDark(color))
     if botIsBot(color) then return "[" .. hex .. "]" .. marbleColorName(color) .. " marble[-]" end

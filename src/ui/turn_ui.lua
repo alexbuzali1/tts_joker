@@ -89,7 +89,7 @@ function turnHighlight(color, on)
 end
 
 
--- Rename the play zones (hover text) after who plays there: "BOT (Blue)'s Play Zone" / "donkachu's Play Zone".
+-- Rename the play zones (hover text) after who plays there: "BOT (Blue)'s Play Zone" / "Alice's Play Zone".
 -- The original names use the seat colour, which isn't the marble colour. Only the visible name changes; the
 -- "<Seat>_DiscardPile" scripting zones that recognise plays keep their names.
 function turnNamePlayZones()

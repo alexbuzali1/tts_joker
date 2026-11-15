@@ -20,8 +20,8 @@ HOST_COMMANDS = {
             "  !botseat [seat]      list empty seats / a bot takes that seat (e.g. !botseat red)\n" ..
             "Hybrid (some players at a real board):\n" ..
             "  !hybrid on|off       empty seats are played in person from the next Start Game\n" ..
-            "  !hybridseat <seat> [name]   a bot's (or empty) seat is played in person from now on (e.g. !hybridseat 1 Evan)\n" ..
-            "  !hybridname <seat> <name>   name an in-person seat (e.g. !hybridname 3 Sam)\n" ..
+            "  !hybridseat <seat> [name]   a bot's (or empty) seat is played in person from now on (e.g. !hybridseat 1 Kim)\n" ..
+            "  !hybridname <seat> <name>   name an in-person seat (e.g. !hybridname 3 Pat)\n" ..
             "  !picker on|off       show the colour pickers (your picker also colours/names in-person seats)\n" ..
             "Table:\n" ..
             "  !freemove on|off     anyone can move marbles at any time (default off)\n" ..
@@ -124,7 +124,7 @@ HOST_COMMANDS = {
         seatText = seatText or a
         local color = botSeatFromName(seatText)
         if not color then return hostReply("No seat " .. seatText) end
-        if name then IRL.names[color] = name end                     -- e.g. !hybridseat 1 Evan
+        if name then IRL.names[color] = name end                     -- e.g. !hybridseat 1 Kim
         if irlIsSeat(color) then                                      -- already in person: just (re)named
             if name then
                 hostReply(marbleColorName(color) .. " is " .. irlLabel(color))
@@ -146,7 +146,7 @@ HOST_COMMANDS = {
     hybridname = function(a)
         local col, name = tostring(a or ""):match("^(%S+)%s+(.+)$")
         local color = col and botSeatFromName(col)
-        if not color then return hostReply("!hybridname <seat> <name>   e.g. !hybridname red Sam  or  !hybridname 3 Sam") end
+        if not color then return hostReply("!hybridname <seat> <name>   e.g. !hybridname red Pat  or  !hybridname 3 Pat") end
         IRL.names[color] = name
         hostReply(marbleColorName(color) .. " is " .. irlLabel(color))
         turnRefreshNames()

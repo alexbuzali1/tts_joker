@@ -27,7 +27,7 @@ end
 -- When its own entrance is held by one of its own marbles the jump can't happen yet (it would land on its own marble),
 -- but that is usually for a turn: the marble on the entrance steps into the finish with almost any small card. So it
 -- keeps JB.PARK_BLOCKED_SHARE of the bonus (was 0; user 2026-11-14 game, flag 47: his Joker friendly-bonked
--- Sam's OTHER marble to Sam's entrance, keeping the one parked on Evan's exit for a later free jump - "I essentially
+-- seat 5's OTHER marble to its entrance, keeping the one parked on seat 7's exit for a later free jump - "I essentially
 -- gain a bonk"; the bot preferred jumping onto the parked one because the park then counted for nothing).
 -- None if the finish has no room for both.
 JB.PARK_WEIGHT = 0.5      -- was 0.7; flag 44: a maybe-jump shouldn't outweigh a sure one

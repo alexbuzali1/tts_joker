@@ -290,7 +290,7 @@ function turnForce(color)
 end
 
 -- Pause holds the game before the next turn starts: a turn in progress (human or bot) carries on and isn't
--- restarted (restarting it re-counted the turn's stats and moved its undo point). who = "Sam" etc. for chat.
+-- restarted (restarting it re-counted the turn's stats and moved its undo point). who = "Pat" etc. for chat.
 function turnSetPaused(on, who)
     if on == TURN_STATE.paused then return end
     TURN_STATE.paused = on

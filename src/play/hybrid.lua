@@ -9,7 +9,7 @@
 --   * the host can also move their marbles by hand and press END TURN (bottom right, only the host sees it then)
 --   * someone sitting down in an in-person seat takes it over; "!botseat <seat>" hands it to a bot
 --   * "!hybridseat <seat> [name]" turns a bot's (or an empty) seat into an in-person seat mid-game, and names it
---   * "!hybridname <seat> <name>" names a seat ("Sam (in person)"); the host's colour picker can colour and name
+--   * "!hybridname <seat> <name>" names a seat ("Pat (in person)"); the host's colour picker can colour and name
 --     them too (ui/color_picker.lua)
 --   <seat> = a seat number (the host's seat is 0, then clockwise), a marble colour, a TTS seat colour, or a name
 IRL = IRL or { mode = false, seats = {}, names = {}, pick = nil }
