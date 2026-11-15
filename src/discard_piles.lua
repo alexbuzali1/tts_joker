@@ -1,5 +1,9 @@
+-- discard_piles.lua
+-- The play zones: a locked tile per seat where cards are played, each with a scripting zone named
+-- "<Seat colour>_DiscardPile" that tells the Global script which seat a played card landed on.
 --#include "constants.lua"
 
+-- One play zone tile.
 function singleDiscardPile(playerColor, position, rotation)
 
     local tile_data = {
@@ -20,6 +24,7 @@ function singleDiscardPile(playerColor, position, rotation)
     return pile
 end
 
+-- A play zone (tile + scripting zone) for every seat. Returns { [seat colour] = tile }.
 function createDiscardPiles(numPlayers)
 
     local l = DEFAULT_BOARD_LENGTH * BOARD_SCALES[numPlayers]

@@ -1,7 +1,10 @@
+-- board.lua
+-- The board: one board piece per seat around the table, and every point a marble can stand on.
 --#include "constants.lua"
 --#include "saved_object_data/boards/light_board.lua"
 --#include "saved_object_data/boards/dark_board.lua"
 
+-- Spawn and lock the board pieces (alternating light and dark) for a table of num_players. Returns them in seat order.
 function createBoard(num_players)
 
     local l = DEFAULT_BOARD_LENGTH * BOARD_SCALES[num_players]
@@ -27,7 +30,7 @@ function createBoard(num_players)
 
         theta = theta0 - (i-1)*alpha
 
-        board = spawnObjectJSON({
+        local board = spawnObjectJSON({
             json = boardJSON,
             position = {radius * math.cos(theta),BOARD_Y,radius * math.sin(theta)},
             rotation = {0,180+(i-1)*alpha*180/math.pi,0},
@@ -40,6 +43,13 @@ function createBoard(num_players)
     return boards
 end
 
+-- Every point of the board, computed from the board geometry. Returns:
+--   snap_points                   all points (ring, finishes, start slots) as TTS snap points
+--   start_points_by_player[color] the 5 start slots of each seat
+--   friendly_bonk_points_by_player[color]   each seat's finish entrance (where a friendly-bonked marble goes)
+--   non_start_points              ring and finish points in board order: per seat 23 entries =
+--                                 ring cells 1-3, that seat's finish cells 1-5, ring cells 4-18
+--                                 (the bots' cell numbering, bot/rules.lua cellToIndex, follows this order)
 function getBoardPoints(num_players)
 
     local player_colors = PLAYER_COLORS[num_players]
@@ -123,6 +133,8 @@ function getBoardPoints(num_players)
     return snap_points, start_points_by_player, friendly_bonk_points_by_player, non_start_points
 end
 
+-- A locked, invisible, untouchable square under every board point: the marbles rest on these instead of the
+-- board mesh, which keeps them from rolling.
 function spawnInvisiblePlanes(num_players, board_points)
 
     local w = DEFAULT_BOARD_WIDTH * BOARD_SCALES[num_players]
@@ -131,7 +143,7 @@ function spawnInvisiblePlanes(num_players, board_points)
     local d = (l-a)/17
 
     for i, pos in ipairs(board_points) do
-        local s = spawnObject({
+        spawnObject({
             type = "BlockSquare",
             position = {x = pos["position"][1], y = INVISIBLE_PLANE_HEIGHTS[num_players], z=pos["position"][3]},
             scale = {x = d, y = 0.1, z = d},
