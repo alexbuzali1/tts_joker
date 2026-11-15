@@ -14,7 +14,7 @@ function botHostMsg(text, color)
         end
     end)
     if not sent then print(text) end
-    if glog then pcall(glog, "host", { text = tostring(text) }) end
+    pcall(glog, "host", { text = tostring(text) })
 end
 
 -- English name of a seat's marble colour (nearest of a small palette), e.g. the Orange seat's blue marbles -> "Blue".
@@ -45,7 +45,7 @@ function botName(color) return "BOT (" .. marbleColorName(color) .. ")" end
 ------------------------------------------------------------------------
 -- current tint of that seat's marbles (read live, so it follows the colour picker too)
 function marbleColorOf(color)
-    -- a picked style (color_picker.lua): its base colour, not the tint an effect is animating right now
+    -- a picked style (ui/color_picker.lua): its base colour, not the tint an effect is animating right now
     if marbleStyleColor then
         local base = marbleStyleColor(color)
         if base then return base end
@@ -89,7 +89,7 @@ end
 -- name to show in chat for a colour: coloured bot label, or the human's steam name
 function playerLabel(color)
     if botIsBot(color) then return botChatName(color) end
-    if irlIsSeat and irlIsSeat(color) then return irlLabel(color) end
+    if irlIsSeat(color) then return irlLabel(color) end
     local p = Player[color]
     if p and p.steam_name and p.steam_name ~= "" then return p.steam_name end
     return marbleColorName(color)          -- empty seat: its marble colour, not the TTS seat colour

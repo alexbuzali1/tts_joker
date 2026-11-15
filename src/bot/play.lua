@@ -133,7 +133,7 @@ local function botRunSteps(act, i, objs, nsp, done, alive, quick)
     end)
 end
 
--- play a chosen move with the bots' animation (easy play, easyplay.lua)
+-- play a chosen move with the bots' animation (easy play, play/easy_play.lua)
 function botRunMove(act, objs, done, quick)
     if quick then
         botRunSteps(act, 1, objs, Global.getTable("non_start_points"), done, nil, true)
@@ -169,16 +169,16 @@ local function botEndTurn(color, done)
 end
 
 function botCheckFinish(color)
-    -- "made it home" and the winner are handled (once each, for humans and bots) by stats.lua
-    if statsCheckFinish then statsCheckFinish() end
+    -- "made it home" and the winner are handled (once each, for humans and bots) by game/stats.lua
+    statsCheckFinish()
 end
 
 ------------------------------------------------------------------------
--- thinking: JokerSearch.choose (bot_search.lua) inside a TTS coroutine, so the table keeps drawing frames
+-- thinking: JokerSearch.choose (bot/search.lua) inside a TTS coroutine, so the table keeps drawing frames
 -- while the bot searches (it yields every ~25 ms). If the coroutine dies (a script error) a watchdog falls
 -- back to the quick one-move choice so the game never gets stuck.
 ------------------------------------------------------------------------
--- Level 10 (bot_engine.lua) counts cards: every card played since the last reshuffle (stats.lua statsCardPlayed
+-- Level 10 (bot/engine.lua) counts cards: every card played since the last reshuffle (game/stats.lua statsCardPlayed
 -- calls botCardsSeen) is out of the unseen pool. A reshuffle shows up as the draw deck growing: the count resets.
 BOT_SEEN = BOT_SEEN or {}
 function botCardsSeen(token) if token then BOT_SEEN[token] = (BOT_SEEN[token] or 0) + 1 end end
@@ -297,7 +297,7 @@ function botTakeTurn(color, done, opts)
                     if ps and (tonumber(ps.burnStreak) or 0) >= 1 then JokerBot.BURNING[s] = true end
                 end
             end)
-            -- search (bot_search.lua) runs spread over frames; the turn continues when it has a move
+            -- search (bot/search.lua) runs spread over frames; the turn continues when it has a move
             botThink(color, S, seat, tokens, function(act)
               if not alive() then return end
               botSafe("record", function() botRecordMove(color, seat, S, tokens, act) end)
@@ -327,7 +327,7 @@ function botTakeTurn(color, done, opts)
                         botRunSteps(act, 1, objs, nsp, function()
                             botAfter(0.4, function()
                                 if not alive() then return end
-                                -- game log (gamelog.lua): compare the board with what the bot meant to do
+                                -- game log (host/game_log.lua): compare the board with what the bot meant to do
                                 botWhenBoardSettled(function()
                                     if not alive() then return end
                                     if botVerifyMove then botSafe("verify", function() botVerifyMove(color, act) end) end
@@ -343,7 +343,7 @@ function botTakeTurn(color, done, opts)
     end) end)                                           -- closes botWhenBoardSettled and botAfter
 end
 
--- Host controls for a broken bot turn (Turn Button while a bot is playing; see endTurnClicked in turns.lua).
+-- Host controls for a broken bot turn (Turn Button while a bot is playing; see endTurnClicked in game/turns.lua).
 -- Skip: end the bot's turn as it is (move its marble by hand first if a move was left half done). Its hand is
 -- topped back up to 6 and play moves on.
 -- stop a bot's turn where it is, nothing drawn (undo.lua puts the hands back itself)

@@ -67,7 +67,7 @@ function statsCardPlayed(color, card)
     if not col then return end
     if card.getVar("stat_counted_turn") == GAME_STATS.turn then return end
     card.setVar("stat_counted_turn", GAME_STATS.turn)
-    if botCardsSeen then botCardsSeen(token) end            -- level 10 card counting (bot.lua)
+    botCardsSeen(token)            -- level 10 card counting (bot/play.lua)
     ps.cards[col] = ps.cards[col] + 1
     if color == GAME_STATS.current then
         GAME_STATS.card_played = true

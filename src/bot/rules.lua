@@ -25,7 +25,7 @@ JokerBot = JokerBot or {}
 local JB = JokerBot
 
 -- JB.STRATEGY (0..1): how much of the "strategy" rules apply. Parking on a teammate's exit, the extra enemy-8-ahead
--- threat, face-card / K / 10 thrift, defensive and multi-bonk Joker bonuses scale with it. bot_search.lua sets it from
+-- threat, face-card / K / 10 thrift, defensive and multi-bonk Joker bonuses scale with it. bot/search.lua sets it from
 -- the difficulty level for each search (low levels play plainly); 1 when the bot_logic chooser is used on its own.
 JB.STRATEGY = 1
 JB.GOAL_SIZE = 5
@@ -131,7 +131,6 @@ function JB.sevenMustSplit(S, seat)
 end
 
 -- kept for older callers: a "straight 7" is a 7 that is NOT required to be split
-function JB.isStraight7(S, seat) return not JB.sevenMustSplit(S, seat) end
 
 ------------------------------------------------------------------------
 -- movement
@@ -263,7 +262,7 @@ function JB.concat(a, b) local o = {}; for _, x in ipairs(a or {}) do o[#o + 1] 
 
 -- Returns a list of legal actions for `seat` holding `hand` (array of card tokens).
 -- action = { card=, steps={ {mi=, kind=, p=}, ... }, state=<state after>, text=, bumps=<n> }
--- opts.simple7 = true: treat a 7 as a plain 7-step move (no splits). Used deeper in the search (bot_search.lua),
+-- opts.simple7 = true: treat a 7 as a plain 7-step move (no splits). Used deeper in the search (bot/search.lua),
 -- where the thousands of split combinations would cost too much time.
 function JB.legalActions(S, seat, hand, opts)
     local acts = {}

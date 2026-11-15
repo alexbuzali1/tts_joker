@@ -171,7 +171,7 @@ end
 ------------------------------------------------------------------------
 local function restore(snap, who)
     UNDO.restoring = true
-    if easyCancel then easyCancel() end
+    easyCancel()
     botStopTurn()
     for _, e in ipairs(snap.marbles) do
         pcall(function()
@@ -190,12 +190,12 @@ local function restore(snap, who)
     TURN_STATE.paused = botIsBot(color) and true or false
     printToAll(who .. " pressed Undo: back to " .. playerLabel(color) .. "'s turn"
         .. (TURN_STATE.paused and " (paused: press Resume to let the bot play)" or ""))
-    if glog then pcall(glog, "undo", { seat = snap.seat, color = color, turn = snap.turn, by = who }) end
+    pcall(glog, "undo", { seat = snap.seat, color = color, turn = snap.turn, by = who })
     -- let the marbles and cards land before the turn starts again
     Wait.time(function()
         UNDO.restoring = false
         turnBegin(snap.seat)
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
     end, 1.5)
 end
 
@@ -212,7 +212,7 @@ function undoClicked(player)
     if BOT_STATE.current or (TURN_STATE.busy and botIsBot(seatColors()[TURN_STATE.seat] or "")) then
         UNDO.waiting = true
         TURN_STATE.paused = true
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
         printToAll(who .. " pressed Undo: waiting for the bot to finish its move")
         Wait.condition(function() UNDO.waiting = false; undoClicked(player) end,
             function() return not BOT_STATE.current and not TURN_STATE.busy end, 60, function() UNDO.waiting = false end)
@@ -239,14 +239,14 @@ end
 function undoPause(player)
     if not (TURN_STATE and TURN_STATE.active) or TURN_STATE.paused then return end
     turnSetPaused(true, player and player.color and playerLabel(player.color) or nil)
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end
 
 function undoResume(player)
     if TURN_STATE and TURN_STATE.paused then
         turnSetPaused(false, player and player.color and playerLabel(player.color) or nil)
     end
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end
 
 -- A new game starts with no undo history (resetForNewGame in Global).

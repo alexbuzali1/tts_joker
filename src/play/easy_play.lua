@@ -147,7 +147,7 @@ local function drawRings(s, on)
     end)
     if not ok and not EASY.ringErr then
         EASY.ringErr = true
-        if botHostMsg then botHostMsg("Easy play: couldn't draw the rings (" .. tostring(err) .. ")", { 1, 0.5, 0.3 }) end
+        botHostMsg("Easy play: couldn't draw the rings (" .. tostring(err) .. ")", { 1, 0.5, 0.3 })
     end
 end
 
@@ -170,7 +170,7 @@ end
 
 local function glowOff(s)
     for _, o in ipairs(s.glowObjs or {}) do
-        if marbleRestoreOutline then marbleRestoreOutline(o) else pcall(function() o.highlightOff() end) end
+        marbleRestoreOutline(o)
     end
     for _, o in ipairs(s.markObjs or {}) do pcall(function() o.destruct() end) end
     s.glowObjs, s.markObjs, s.rings = {}, {}, {}
@@ -245,7 +245,7 @@ function easyCancel(why)
     glowOff(s)
     EASY.session = nil
     if why then broadcastToColor(why, s.ctrl or s.color, { 1, 0.8, 0.3 }) end
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end
 
 local function promptText(s)
@@ -273,7 +273,7 @@ local function execute(a)
     s.busy = true
     glowOff(s)
     s.choices = nil
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     -- a marble clicked in the start may not be the one the action names (they're all the same move): swap them
     local objs = {}
     for i, o in pairs(s.objs) do objs[i] = o end
@@ -283,7 +283,7 @@ local function execute(a)
     if s.leg1 then a = { card = a.card, steps = { a.steps[2] }, state = a.state, bumps = a.bumps } end   -- part 1 is done
     botRunMove(a, objs, function()
         if EASY.session == s then EASY.session = nil end
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
         autoEndTurn(s.color, gen)
     end, true)
 end
@@ -291,7 +291,7 @@ end
 function runLeg1(s, a)
     s.busy = true
     glowOff(s)
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     local leg = { card = a.card, steps = { a.steps[1] }, state = a.state, bumps = a.bumps }
     botRunMove(leg, s.objs, function()
         if EASY.session ~= s then return end
@@ -331,7 +331,7 @@ function easyNextStep()
         elseif n > 0 then
             s.next = nextSet
             glow(s, nextSet)
-            if refreshGameUI then refreshGameUI() end
+            refreshGameUI()
             return
         else
             -- every click made: play it, or choose when several moves are still left
@@ -343,13 +343,13 @@ function easyNextStep()
             s.next = nil
             s.choices = list
             glowOff(s)
-            if refreshGameUI then refreshGameUI() end
+            refreshGameUI()
             return
         end
     end
 end
 
--- a card landed on its owner's play zone (handlers.lua)
+-- a card landed on its owner's play zone (game/cards_played.lua)
 function easyCardPlayed(color, card)
     if not EASY.on[color] then return end
     if not (TURN_STATE and TURN_STATE.active) or TURN_STATE.paused then return end
@@ -360,7 +360,7 @@ function easyCardPlayed(color, card)
 end
 
 -- Start choosing a move for `color`'s turn with that card. ctrl = who clicks (nil = that player; the host for an
--- in-person seat, irl.lua). Returns false if a move is already being played.
+-- in-person seat, play/hybrid.lua). Returns false if a move is already being played.
 function easyStart(color, token, guid, ctrl)
     local s0 = EASY.session
     if s0 and s0.busy then return false end               -- a move is already being played
@@ -372,7 +372,7 @@ function easyStart(color, token, guid, ctrl)
     local acts = JokerBot.legalActions(S, seat, { token })
     if #acts == 0 then
         broadcastToColor("No legal move with that " .. cardWord(token) .. ": it's burned.", ctrl or color, { 1, 0.8, 0.3 })
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
         local burn = { guid = guid, gen = TURN_STATE.gen }
         EASY.burn = burn
         Wait.time(function()
@@ -456,7 +456,7 @@ function easyToggle(player)
     if not EASY.on[player.color] and EASY.session and EASY.session.color == player.color then easyCancel() end
     broadcastToColor(EASY.on[player.color] and "Easy play ON: play a card, then click a glowing marble"
                      or "Easy play OFF: move marbles by hand", player.color, { 0.6, 1, 0.6 })
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end
 
 
@@ -475,7 +475,6 @@ function easyChoose(player, value, id)
     if a then execute(a) end
 end
 
-local function esc(t) return (tostring(t):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")) end
 
 function easyUiXml()
     if not (GAME_STATS and TURN_STATE and TURN_STATE.active) then return "" end
@@ -499,9 +498,9 @@ function easyUiXml()
         x[#x + 1] = string.format('<Panel id="easyPrompt" visibility="%s" rectAlignment="LowerCenter" offsetXY="0 40" width="560" height="%d" color="#000000D0" padding="10 10 8 8">'
             .. '<VerticalLayout spacing="6">', s.ctrl or s.color, h)
         x[#x + 1] = string.format('<HorizontalLayout spacing="8" preferredHeight="40"><Text fontSize="20" fontStyle="Bold" color="#FFE066" preferredWidth="420">%s</Text>'
-            .. '<Button onClick="easyCancelClicked" fontSize="16" preferredWidth="110">Cancel</Button></HorizontalLayout>', esc(promptText(s)))
+            .. '<Button onClick="easyCancelClicked" fontSize="16" preferredWidth="110">Cancel</Button></HorizontalLayout>', xmlEscape(promptText(s)))
         for i, a in ipairs(s.choices or {}) do
-            x[#x + 1] = string.format('<Button id="easyOpt_%d" onClick="easyChoose" fontSize="17" preferredHeight="38">%s</Button>', i, esc(easyDescribe(a)))
+            x[#x + 1] = string.format('<Button id="easyOpt_%d" onClick="easyChoose" fontSize="17" preferredHeight="38">%s</Button>', i, xmlEscape(easyDescribe(a)))
         end
         x[#x + 1] = '</VerticalLayout></Panel>'
     end

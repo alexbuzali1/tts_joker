@@ -25,5 +25,6 @@ end
 
 -- & < > " made safe for XML text and attributes
 function xmlEscape(s)
+    if s == nil then return "" end
     return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
 end

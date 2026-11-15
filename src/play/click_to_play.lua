@@ -23,7 +23,7 @@ end
 -- seconds for a clicked card to fly to the play zone, by the bots' speed setting (user); 0 = straight there
 EASY_PLAY_FLIGHT = { Slow = 1.5, Normal = 1.0, Fast = 0.5, Instant = 0 }
 function easyFlightTime()
-    local sp = botSpeed and botSpeed()
+    local sp = botSpeed()
     local t = sp and EASY_PLAY_FLIGHT[sp.name]
     return t or 1.0
 end
@@ -158,5 +158,5 @@ function clickToggle(player)
     EASY.click[player.color] = not EASY.click[player.color]
     broadcastToColor(EASY.click[player.color] and "Click to play ON: click a card in your hand to play it (drag to rearrange)"
                      or "Click to play OFF: drag cards onto your play zone", player.color, { 0.6, 1, 0.6 })
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end

@@ -85,7 +85,7 @@ function JB.threatsAt(S, p, parity, exitThreat, realOnly)
 end
 JB.SPOT_THREATS = 2      -- an enemy's -8 spot or finish entrance counts as this many threats
 
--- Seats that burned on their last turn (set by bot.lua from the game stats before each bot move; empty in tests).
+-- Seats that burned on their last turn (set by bot/play.lua from the game stats before each bot move; empty in tests).
 -- A burning player most likely has no card to come out of start with.
 JB.BURNING = JB.BURNING or {}
 function JB.exitThreats(S, parity)

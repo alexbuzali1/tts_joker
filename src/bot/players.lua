@@ -25,10 +25,10 @@ BOT_SPEEDS = { { name = "Slow", t = 1.6, fast = false }, { name = "Normal", t = 
                { name = "Instant", t = 0.05, fast = true, instant = true } }
 BOT_STASH_X = 150          -- where hidden bot cards live (far off the table, locked)
 BOT_DEBUG_SHOW_HANDS = false  -- DEBUG: show each bot's hand face up next to its play zone (host chat: !hands on)
-BOT_DIFFICULTY = BOT_DIFFICULTY or 9    -- 1 (easiest) .. 9 (hardest), 10 = engine (bot_engine.lua), saved with the game. See JokerSearch.LEVELS in bot_search.lua
+BOT_DIFFICULTY = BOT_DIFFICULTY or 9    -- 1 (easiest) .. 9 (hardest), 10 = engine (bot/engine.lua), saved with the game. See JokerSearch.LEVELS in bot/search.lua
 BOT_THINK_TIME = BOT_THINK_TIME or 4.0  -- seconds of search per bot move
 -- Party mode: the bot panel only shows the bots, what they are doing and the Stats button. The settings (speed,
--- difficulty, think time) and "Flag bad move" are the host's, through hidden chat commands (gamelog.lua, !bot help),
+-- difficulty, think time) and "Flag bad move" are the host's, through hidden chat commands (host/commands.lua, !help),
 -- or shown again with !dev on.
 BOT_DEV_UI = false
 
@@ -275,7 +275,7 @@ function botTopUpHands()
         if on and hand and not busy and not BOT_STATE.topping[color] and #hand < BOT_HAND_SIZE then
             local missing = BOT_HAND_SIZE - #hand
             BOT_STATE.topping[color] = true
-            if glog then pcall(glog, "topup", { color = color, cards = missing }) end
+            pcall(glog, "topup", { color = color, cards = missing })
             botDrawCards(color, missing, function()
                 BOT_STATE.topping[color] = nil
                 if botRelayoutHands then pcall(botRelayoutHands) end
@@ -320,7 +320,7 @@ function botSeatToHuman(color)
     local name = (Player[color].steam_name and Player[color].steam_name ~= "") and Player[color].steam_name or "A player"
     printToAll(name .. " took over " .. label .. "'s seat")
     if turnNamePlayZones then pcall(turnNamePlayZones) end
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     -- a bot turn for this seat that hasn't started yet becomes a human turn by itself (turnBegin checks botIsBot)
 end
 
@@ -344,7 +344,7 @@ function botSeatFromHuman(color)
     end
     printToAll(botChatName(color) .. " takes over the empty seat")
     if turnNamePlayZones then pcall(turnNamePlayZones) end
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     -- it is that seat's turn (the game was waiting for the player who left): the bot plays it now
     if TURN_STATE and TURN_STATE.active and turnBegin and botSeatIndex(color) == TURN_STATE.seat and not BOT_STATE.current then
         Wait.time(function() turnBegin(TURN_STATE.seat) end, 1.5)
@@ -354,7 +354,7 @@ end
 
 -- a seat colour from what the host typed: the marble colour ("red") first, else the TTS seat colour
 -- A seat from what the host typed: a seat number (the host's seat is 0, then 1, 2... going clockwise, the turn
--- order), a marble colour, a TTS seat colour, or an in-person seat's name (hybrid mode, irl.lua).
+-- order), a marble colour, a TTS seat colour, or an in-person seat's name (hybrid mode, play/hybrid.lua).
 function botSeatFromName(text)
     local N = Global.getVar("num_players")
     text = (text or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")

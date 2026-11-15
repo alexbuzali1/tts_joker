@@ -112,7 +112,7 @@ function glogGameOver(team)
     glog("game_over", { team = team, board = boardNow(), stats = GAME_STATS })
 end
 
--- called by bot.lua after a bot's move has played out and the board has settled
+-- called by bot/play.lua after a bot's move has played out and the board has settled
 function botVerifyMove(color, act)
     if not act or not act.state then return end
     local ok, S = pcall(botReadState)

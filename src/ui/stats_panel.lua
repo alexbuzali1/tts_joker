@@ -4,15 +4,10 @@
 -- Deal to 6.
 
 ------------------------------------------------------------------------
-local function esc(s)
-    s = tostring(s)
-    return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
-end
-
 -- plain display name (playerLabel adds chat colour codes for bots, which XML can't show)
 local function statsName(color)
     if botIsBot(color) then return botName(color) end
-    if irlIsSeat and irlIsSeat(color) then return (IRL.names and IRL.names[color]) or marbleColorName(color) end   -- hybrid
+    if irlIsSeat(color) then return (IRL.names and IRL.names[color]) or marbleColorName(color) end   -- hybrid
     local p = Player[color]
     if p and p.steam_name and p.steam_name ~= "" then return p.steam_name end
     return marbleColorName(color)
@@ -36,13 +31,13 @@ local TEAM_BG = { "#1F3F6ACC", "#6A1F1FCC" }
 
 local function cell(text, color, bold)
     return string.format('<Cell><Text fontSize="13" color="%s"%s alignment="MiddleCenter">%s</Text></Cell>',
-        color or "#FFFFFF", bold and ' fontStyle="Bold"' or "", esc(text))
+        color or "#FFFFFF", bold and ' fontStyle="Bold"' or "", xmlEscape(text))
 end
 
 -- awards can be a long list (several awards per player): wrap onto two lines and shrink the text to fit the cell
 local function awardCell(text)
     return string.format('<Cell><Text fontSize="12" color="#FFE9A8" alignment="MiddleCenter" horizontalOverflow="Wrap"'
-        .. ' resizeTextForBestFit="true" resizeTextMinSize="8" resizeTextMaxSize="12">%s</Text></Cell>', esc(text))
+        .. ' resizeTextForBestFit="true" resizeTextMinSize="8" resizeTextMaxSize="12">%s</Text></Cell>', xmlEscape(text))
 end
 
 local function columnWidths(lastCols)
@@ -125,7 +120,7 @@ end
 -- "Stats" button for the top-left panel (only once a game has started)
 function statsButtonXml()
     if not GAME_STATS then return "" end
-    -- Stats and "Deal to 6" (turns.lua dealToSix) share one row, so the panel height stays the same
+    -- Stats and "Deal to 6" (game/turns.lua dealToSix) share one row, so the panel height stays the same
     -- during the game: Undo (undo.lua) in place of Stats, plus Resume while paused; Stats once the game is over
     local first
     if GAME_STATS.winner ~= 0 or not undoClicked then

@@ -1,7 +1,7 @@
--- bot_search.lua
+-- bot/search.lua
 -- Lookahead search for the Joker bot, with a difficulty scale (1 = easiest .. 9 = hardest) and a time limit.
--- Pure Lua like bot_logic.lua (no Tabletop Simulator calls), so it is unit tested outside the game
--- (test_bot_search.lua). bot.lua runs it inside a TTS coroutine so the game doesn't freeze while a bot thinks.
+-- Pure Lua like bot/rules.lua (no Tabletop Simulator calls), so it is unit tested outside the game
+-- (tests/test_bot_search.lua). bot/play.lua runs it inside a TTS coroutine so the game doesn't freeze while a bot thinks.
 --
 -- HOW IT THINKS
 --   Iterative deepening: search 1 ply (just my move), then 2 (my move + the next player's reply), then 3, ...
@@ -15,7 +15,7 @@
 --     opponent : pessimism * worst case for us + (1 - pessimism) * card-frequency-weighted average
 --     teammate : pessimism * best case for us  + (1 - pessimism) * weighted average
 --   When the turn comes back round to the bot it uses the cards it really still holds (best of its top moves).
---   Leaves are scored with JokerBot.evaluate (bot_logic.lua) from the bot's team's point of view.
+--   Leaves are scored with JokerBot.evaluate (bot/rules.lua) from the bot's team's point of view.
 --
 --   Only the most promising root moves (by the previous depth's score) are searched deeper ("roots" per level);
 --   the rest keep their shallower score. Lower levels also add random noise and occasional blunders.

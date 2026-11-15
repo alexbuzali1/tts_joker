@@ -58,12 +58,12 @@ function irlPick(player, value, id)
     -- a different card picked before moving: the earlier pick no longer counts
     if IRL.pick and IRL.pick.gen == TURN_STATE.gen and statsCardUnplayed then statsCardUnplayed(color, IRL.pick.card) end
     local card = fakeCard(token)
-    if statsCardPlayed then statsCardPlayed(color, card) end
+    statsCardPlayed(color, card)
     IRL.pick = { gen = TURN_STATE.gen, card = card, token = token }
     printToAll(playerLabel(color) .. " played a" .. ((token == 'a' or token == '8') and "n " or " ") .. (WORD[token] or token))
-    if glog then pcall(glog, "irl_card", { color = color, card = token }) end
+    pcall(glog, "irl_card", { color = color, card = token })
     easyStart(color, token, card.getGUID(), player.color)
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
 end
 
 -- the host's card bar on an in-person turn
@@ -76,7 +76,7 @@ function irlUiXml()
     x[#x + 1] = '<Panel id="irlBar" visibility="Host" rectAlignment="LowerCenter" offsetXY="0 110" width="780" height="92" color="#000000D8" padding="10 10 6 6">'
         .. '<VerticalLayout spacing="4">'
     x[#x + 1] = string.format('<Text fontSize="18" fontStyle="Bold" color="#FFE066" preferredHeight="26">%s: pick the card they played%s</Text>',
-        (tostring(playerLabel(color)):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")),
+        xmlEscape(playerLabel(color)),
         picked and ", then copy their move" or "")
     x[#x + 1] = '<HorizontalLayout spacing="4" preferredHeight="44">'
     for _, t in ipairs(IRL_TOKENS) do
@@ -88,7 +88,7 @@ function irlUiXml()
     return table.concat(x)
 end
 
--- a game starts: in-person mode turns the empty seats into in-person seats (bot.lua skips them)
+-- a game starts: in-person mode turns the empty seats into in-person seats (bot/players.lua skips them)
 -- Game start (bot/players.lua botOnGameStart, before the bots are chosen): in hybrid mode every empty seat is
 -- played in person (unless every seat is a bot on purpose).
 function hybridAssignSeats(num_players)
@@ -148,10 +148,10 @@ function irlSeatFromBot(color)
         end
         IRL.seats[color] = true
         printToAll(marbleColorName(color) .. "'s seat is now played in person" .. (IRL.names[color] and (" by " .. IRL.names[color]) or ""))
-        if glog then pcall(glog, "hybridseat", { color = color }) end
+        pcall(glog, "hybridseat", { color = color })
         -- its turn now (a bot about to play, or an empty seat): start it as an in-person turn
         if TURN_STATE and TURN_STATE.active and seatColors()[TURN_STATE.seat] == color then turnBegin(TURN_STATE.seat) end
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
     end
     local cur = BOT_STATE.current
     if cur and cur.color == color and not cur.finished then

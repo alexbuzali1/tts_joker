@@ -1,4 +1,4 @@
--- bot_engine.lua: the level-10 Joker bot ("engine"). Pure Lua like bot_logic.lua / bot_search.lua (no TTS calls).
+-- bot/engine.lua: the level-10 Joker bot ("engine"). Pure Lua like bot/rules.lua / bot/search.lua (no TTS calls).
 --
 -- Unlike levels 1-9 it has no list of hand-made strategy rules. It scores a position with ONE general cost function
 -- and searches deep, round the table:

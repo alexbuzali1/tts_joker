@@ -43,7 +43,7 @@ local function neutralV(k) return 1 - k / (PICK_NEUTRALS - 1) end
 local function pickerSeats()
     local out = {}
     for _, c in ipairs(PLAYER_COLORS and PLAYER_COLORS[Global.getVar("num_players")] or {}) do
-        if not (botIsBot and botIsBot(c)) then out[#out + 1] = c end
+        if not (botIsBot(c)) then out[#out + 1] = c end
     end
     return out
 end
@@ -55,7 +55,7 @@ function marbleStyleColor(color)
     return hsvToRgb(st.h, st.s, st.v)
 end
 
--- The host can also colour and name the in-person seats (irl.lua; user): their picker has a tab per seat.
+-- The host can also colour and name the in-person seats (play/hybrid.lua; user): their picker has a tab per seat.
 -- Seats: the host's own, the in-person ones, and before a game with "!async on" every empty seat.
 PICK_TARGET = PICK_TARGET or {}          -- [viewer colour] = the seat that viewer's picker is colouring
 local function isHost(c) local p = Player[c]; return p and p.host end
@@ -63,8 +63,8 @@ function pickTargets(viewer)
     local out = { viewer }
     if not isHost(viewer) then return out end
     for _, c in ipairs(PLAYER_COLORS and PLAYER_COLORS[Global.getVar("num_players")] or {}) do
-        if c ~= viewer and not (botIsBot and botIsBot(c)) and not (Player[c] and Player[c].seated)
-           and ((irlIsSeat and irlIsSeat(c)) or (IRL and IRL.mode)) then
+        if c ~= viewer and not (botIsBot(c)) and not (Player[c] and Player[c].seated)
+           and ((irlIsSeat(c)) or (IRL and IRL.mode)) then
             out[#out + 1] = c
         end
     end
@@ -75,8 +75,7 @@ function pickTarget(viewer)
     for _, c in ipairs(pickTargets(viewer)) do if c == t then return t end end
     return viewer
 end
-local function esc(t) return (tostring(t or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")) end
-local function seatName(c) return (IRL and IRL.names and IRL.names[c]) or (marbleColorName and marbleColorName(c)) or c end
+local function seatName(c) return (IRL and IRL.names and IRL.names[c]) or (marbleColorName(c)) or c end
 
 local function onePickerXml(c)
     local tgt = pickTarget(c)
@@ -88,18 +87,18 @@ local function onePickerXml(c)
     x[#x + 1] = string.format('<Panel id="pick_%s" visibility="%s" position="500 -250" width="400" height="%d" color="#000000D8" padding="12 12 10 10">'
         .. '<VerticalLayout spacing="6" childForceExpandHeight="false">'
         .. '<Text fontSize="24" fontStyle="Bold" color="#FFFFFF" preferredHeight="32">%s</Text>', c, c, 500 + extra,
-        tgt == c and "Pick your marble colour" or esc("Colour for " .. seatName(tgt) .. " (in person)"))
+        tgt == c and "Pick your marble colour" or xmlEscape("Colour for " .. seatName(tgt) .. " (in person)"))
     if #targets > 1 then                                   -- the host: whose marbles this picker colours
         x[#x + 1] = '<HorizontalLayout spacing="4" preferredHeight="34">'
         for _, t in ipairs(targets) do
             x[#x + 1] = string.format('<Button id="pickTo_%s_%s" onClick="pickerTarget" fontSize="15" color="%s">%s</Button>',
-                c, t, t == tgt and "#E8C547" or "#777777", t == c and "You" or esc(seatName(t)))
+                c, t, t == tgt and "#E8C547" or "#777777", t == c and "You" or xmlEscape(seatName(t)))
         end
         x[#x + 1] = '</HorizontalLayout>'
     end
     if tgt ~= c then                                       -- an in-person seat: its name
         x[#x + 1] = string.format('<InputField id="pickName_%s" onEndEdit="pickerName" fontSize="17" preferredHeight="34" placeholder="Name (e.g. Sam)" text="%s"/>',
-            c, esc(IRL and IRL.names and IRL.names[tgt] or ""))
+            c, xmlEscape(IRL and IRL.names and IRL.names[tgt] or ""))
     end
     -- the colour square
     x[#x + 1] = '<VerticalLayout spacing="0" preferredHeight="200">'
@@ -126,7 +125,7 @@ local function onePickerXml(c)
     x[#x + 1] = '</HorizontalLayout>'
     x[#x + 1] = string.format('<Slider id="hue_%s" minValue="0" maxValue="359" value="%d" onValueChanged="pickerHue" preferredHeight="24"/>', c, math.floor(hue))
     -- preview + solid / see-through
-    local cur = marbleStyleColor(tgt) or (marbleColorOf and marbleColorOf(tgt)) or { r = 1, g = 1, b = 1 }
+    local cur = marbleStyleColor(tgt) or (marbleColorOf(tgt)) or { r = 1, g = 1, b = 1 }
     x[#x + 1] = string.format('<HorizontalLayout spacing="8" preferredHeight="40">'
         .. '<Panel id="pickPrev_%s" color="%s" preferredWidth="70"/>'
         .. '<Button id="pickSolid_%s" onClick="pickerSee" fontSize="17" color="%s">Solid</Button>'
@@ -181,7 +180,7 @@ function colorChosen(player, value, id)
     MARBLE_STYLE[tgt] = st
     marbleApplyStyle(tgt)
     pcall(function() UI.setAttribute("pickPrev_" .. c, "color", hex(hsvToRgb(st.h, st.s, st.v))) end)
-    if turnRefreshNames then turnRefreshNames() end
+    turnRefreshNames()
 end
 
 -- the hue slider: recolour that player's square (batched: the slider fires on every step of a drag)
@@ -250,7 +249,7 @@ function pickerName(player, value, id)
     if tgt == c then return end
     local name = tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")
     IRL.names[tgt] = name ~= "" and name or nil
-    if turnRefreshNames then turnRefreshNames() end
+    turnRefreshNames()
     refreshGameUI()
 end
 

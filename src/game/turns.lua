@@ -50,7 +50,7 @@ function turnBegin(seat, first)
     TURN_STATE.held = false
     if botTopUpHands then pcall(botTopUpHands) end          -- every bot back to 6 cards
     if easyCancel then pcall(easyCancel) end
-    if undoSnapshot then pcall(undoSnapshot, seat) end
+    pcall(undoSnapshot, seat)
     Turns.pass_turns = false          -- the Turn Button is the only way to end a turn
     Turns.disable_interactations = false   -- hovering marbles for distances works off-turn too (user)
 
@@ -62,7 +62,7 @@ function turnBegin(seat, first)
             return
         end
         TURN_STATE.busy = true
-        if statsTurnStart then statsTurnStart(color) end
+        statsTurnStart(color)
         turnShowTurn(color, botName(color) .. (first and " goes first" or "'s turn"), nil, false)
         if first then
             broadcastToAll(botName(color) .. " goes first", nameColorOnDark(color))
@@ -79,7 +79,7 @@ function turnBegin(seat, first)
             if not botIsBot(color) then turnBegin(seat); return end      -- a player took the seat meanwhile
             botTakeTurn(color, function()
                 if TURN_STATE.gen ~= gen then return end
-                if statsTurnEnd then statsTurnEnd(color) end
+                statsTurnEnd(color)
                 Wait.time(function() if TURN_STATE.gen == gen then turnAdvance() end end, 0.8 * botSpeed().t)
             end)
         end, function() return not BOT_STATE.dealing and not (BOT_STATE.topping and BOT_STATE.topping[color]) end, 30, function()
@@ -87,23 +87,23 @@ function turnBegin(seat, first)
             turnAdvance()
         end)
 
-    elseif irlIsSeat and irlIsSeat(color) and not Player[color].seated then
-        -- in person (irl.lua): the host picks their card on the card bar and copies their move
+    elseif irlIsSeat(color) and not Player[color].seated then
+        -- in person (play/hybrid.lua): the host picks their card on the card bar and copies their move
         TURN_STATE.busy = false
         if IRL then IRL.pick = nil end
-        if statsTurnStart then statsTurnStart(color) end
+        statsTurnStart(color)
         turnHighlight(color, true)
         local name = playerLabel(color)
         turnShowTurn(color, name .. (first and " goes first!" or "'s turn"), nil, true)
         if first then broadcastToAll(name .. " goes first!", { 1, 1, 1 }) end
         turnButtonLabel(name .. "'s turn\nHost: pick their card", "Pick the card they played on the bar at the bottom, then copy their move. Or move by hand and click here.")
         if BOT_STATE.active then botSetStatus("Waiting for " .. name) end
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
 
     elseif Player[color].seated then
         TURN_STATE.busy = false
         Turns.turn_color = color      -- keeps TTS's own turn indicator in sync (onPlayerTurn ignores it)
-        if statsTurnStart then statsTurnStart(color) end
+        statsTurnStart(color)
         turnHighlight(color, true)
         local name = playerLabel(color)
         turnShowTurn(color, name .. (first and " goes first!" or "'s turn"), nil, true)
@@ -149,7 +149,7 @@ end
 
 function turnAdvance()
     if not TURN_STATE.active then return end
-    if statsCheckFinish then statsCheckFinish() end   -- announces "made it home" / the winner, opens the stats
+    statsCheckFinish()   -- announces "made it home" / the winner, opens the stats
     local team = turnWinningTeam()
     if team then turnGameOver(team); return end
     local N = Global.getVar("num_players")
@@ -198,7 +198,7 @@ function endTurnClicked(obj, player_color, alt_click)
     local gen = TURN_STATE.gen
     botWhenBoardSettled(function()
         if TURN_STATE.gen ~= gen then return end                      -- undone meanwhile
-        if statsTurnEnd then statsTurnEnd(cur) end
+        statsTurnEnd(cur)
         turnAdvance()
     end)
 end
@@ -228,7 +228,7 @@ end
 
 ------------------------------------------------------------------------
 -- failsafes for the host (user 2026-11-12: a player reconnected, TTS's own turn moved on to the wrong player
--- and his marble colours came back wrong). Host chat commands in gamelog.lua: !turn, !next, !pause, !resync.
+-- and his marble colours came back wrong). Host chat commands in host/commands.lua: !turn, !next, !pause, !resync.
 ------------------------------------------------------------------------
 -- a seat's colour from what the host typed: marble colour ("red"), TTS seat colour, or the start of a player name
 function turnSeatFromText(text)
@@ -262,7 +262,7 @@ function turnResync()
         local cur = (turnColors() or {})[TURN_STATE.seat]
         if cur and not botIsBot(cur) then Turns.turn_color = cur end
     end
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     pcall(turnNamePlayZones)
 end
 
@@ -294,7 +294,7 @@ end
 function turnSetPaused(on, who)
     if on == TURN_STATE.paused then return end
     TURN_STATE.paused = on
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     who = who or "the host"
     if on then
         printToAll("Game paused by " .. who .. " - it stops before the next turn. Press Resume to go on.")

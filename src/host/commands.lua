@@ -68,12 +68,12 @@ HOST_COMMANDS = {
     end,
     hands = function(a)
         BOT_DEBUG_SHOW_HANDS = (a == "on") or (a ~= "off" and not BOT_DEBUG_SHOW_HANDS)
-        if botRelayoutHands then botRelayoutHands() end
+        botRelayoutHands()
         hostReply("Bot hands " .. (BOT_DEBUG_SHOW_HANDS and "SHOWN on the table (everyone can see them)" or "hidden"))
     end,
     dev = function(a)
         BOT_DEV_UI = (a == "on") or (a ~= "off" and not BOT_DEV_UI)
-        if refreshGameUI then refreshGameUI() end
+        refreshGameUI()
         hostReply("Settings panel " .. (BOT_DEV_UI and "shown" or "hidden"))
     end,
     botseat = function(a)
@@ -128,8 +128,8 @@ HOST_COMMANDS = {
         if irlIsSeat(color) then                                      -- already in person: just (re)named
             if name then
                 hostReply(marbleColorName(color) .. " is " .. irlLabel(color))
-                if turnRefreshNames then turnRefreshNames() end
-                if refreshGameUI then refreshGameUI() end
+                turnRefreshNames()
+                refreshGameUI()
             else
                 hostReply("That seat is already played in person")
             end
@@ -149,8 +149,8 @@ HOST_COMMANDS = {
         if not color then return hostReply("!hybridname <seat> <name>   e.g. !hybridname red Sam  or  !hybridname 3 Sam") end
         IRL.names[color] = name
         hostReply(marbleColorName(color) .. " is " .. irlLabel(color))
-        if turnRefreshNames then turnRefreshNames() end
-        if refreshGameUI then refreshGameUI() end
+        turnRefreshNames()
+        refreshGameUI()
     end,
     give = function(a, player)
         local token = giveToken(a)
@@ -158,7 +158,7 @@ HOST_COMMANDS = {
         local name = giveCardTo(player.color, token)
         if name then
             hostReply("Gave you the " .. name)
-            if glog then pcall(glog, "give", { color = player.color, card = name }) end
+            pcall(glog, "give", { color = player.color, card = name })
         else
             hostReply("No free " .. token:upper() .. " to give (not in the deck, a play pile or on the table)")
         end

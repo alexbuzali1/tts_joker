@@ -13,7 +13,6 @@ TURN_BUTTON_SIZE = { w = 1300, h = 440, font = 120 }   -- the Turn Button on the
 TURN_SPLASH_TIME = 1.6
 TURN_UI = TURN_UI or { text = nil, hex = "#FFFFFF", color = nil, human = false, splash = 0 }
 
-local function uiEsc(t) return (tostring(t):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")) end
 local function othersThan(color)
     local out = {}
     for _, c in ipairs(BOT_ALL_COLORS or {}) do if c ~= color then out[#out + 1] = c end end
@@ -25,12 +24,12 @@ function turnUiXml()
     local xml = string.format([[
 <Panel id="turnBanner" rectAlignment="UpperCenter" offsetXY="0 -36" width="620" height="70" color="#000000D0">
   <Text id="turnBannerText" fontSize="40" fontStyle="Bold" color="%s" outline="#000000" outlineSize="2 2" text="%s"/>
-</Panel>]], TURN_UI.hex, uiEsc(TURN_UI.text))
+</Panel>]], TURN_UI.hex, xmlEscape(TURN_UI.text))
     if TURN_UI.human and TURN_UI.color and not (EASY and EASY.on[TURN_UI.color]) then   -- easy play: the turn ends by itself
         xml = xml .. string.format([[
 <Button id="turnEndBtn" visibility="%s" onClick="turnEndTurnUI" rectAlignment="LowerRight" offsetXY="-20 40"
         width="320" height="76" fontSize="34" fontStyle="Bold" textColor="#FFFFFF" color="#1F8F3A">END TURN</Button>]],
-            (irlIsSeat and irlIsSeat(TURN_UI.color)) and "Host" or TURN_UI.color)     -- in person: the host ends it
+            (irlIsSeat(TURN_UI.color)) and "Host" or TURN_UI.color)     -- in person: the host ends it
     end
     if TURN_UI.splash_text then
         local who = TURN_UI.color or ""
@@ -38,7 +37,7 @@ function turnUiXml()
 <Panel id="turnSplash" active="false" width="1000" height="190" color="#000000B0" showAnimation="Grow" hideAnimation="FadeOut" animationDuration="0.25">
   <Text visibility="%s" fontSize="84" fontStyle="Bold" color="%s" outline="#000000" outlineSize="3 3" text="%s"/>
   %s
-</Panel>]], othersThan(who), TURN_UI.hex, uiEsc(TURN_UI.splash_text),
+</Panel>]], othersThan(who), TURN_UI.hex, xmlEscape(TURN_UI.splash_text),
             TURN_UI.human and string.format('<Text visibility="%s" fontSize="96" fontStyle="Bold" color="%s" outline="#000000" outlineSize="3 3" text="YOUR TURN!"/>', who, TURN_UI.hex) or "")
     end
     return xml
@@ -56,7 +55,7 @@ function turnShowTurn(color, text, hex, human)
     TURN_UI.splash_text = text
     TURN_UI.splash = (TURN_UI.splash or 0) + 1
     local token = TURN_UI.splash
-    if refreshGameUI then refreshGameUI() end
+    refreshGameUI()
     -- the rebuilt UI exists a moment later; then grow the splash in and fade it out
     Wait.time(function()
         if TURN_UI.splash ~= token then return end

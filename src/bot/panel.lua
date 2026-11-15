@@ -4,12 +4,8 @@
 -- The settings themselves are normally the host's chat commands (host/commands.lua).
 
 ------------------------------------------------------------------------
-local function xmlEsc(s)
-    return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
-end
-
 function botPanelXml()
-    local stats_btn = statsButtonXml and statsButtonXml() or ""
+    local stats_btn = statsButtonXml() or ""
     if not BOT_STATE.active then
         -- no bots: the panel only holds the Stats button (once a game has started)
         if stats_btn == "" then return "" end
@@ -24,7 +20,7 @@ function botPanelXml()
     -- each bot's name in its marble colour (TTS XML rich-text tag <textcolor>)
     local colored = {}
     for i, color in ipairs(names) do
-        colored[i] = string.format('<textcolor color="#%s">%s</textcolor>', colorHex(nameColorOnDark(color)), xmlEsc(marbleColorName(color)))
+        colored[i] = string.format('<textcolor color="#%s">%s</textcolor>', colorHex(nameColorOnDark(color)), xmlEscape(marbleColorName(color)))
     end
     -- the title wraps with many bots (6- and 8-player games): about 22 characters fit on a line
     local plain = {}
@@ -58,7 +54,7 @@ function botPanelXml()
     %s
   </VerticalLayout>
 </Panel>]], (stats_btn ~= "" and 36 or 0) + 30 + 16 + controls_h + title_h, title_h, table.concat(colored, ", "), BOT_STATE.status_color or "#FFFFFF",
-        xmlEsc(BOT_STATE.status), controls, stats_btn)
+        xmlEscape(BOT_STATE.status), controls, stats_btn)
 end
 
 function botCycleSpeed(player, value, id)
