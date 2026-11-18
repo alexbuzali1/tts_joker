@@ -1,6 +1,7 @@
 -- game/turn_timer.lua  (Global script)
 -- The turn timer (user, 11-17): on a person's turn the edge of THEIR screen glows in their marble colour until they
 -- play a card, and it gets harder to ignore the longer they take:
+--   start    one flash with a very wide border, so you notice even when zoned out (user, 11-18)
 --   0-25 s   a slow, gentle glow
 --   25 s     it flashes
 --   40 s     it flashes faster and ticks
@@ -16,7 +17,9 @@ TURN_TIMER_STAGES = {                 -- from `at` seconds: border thickness, se
     { at = 40, thick = 22, half = 0.25, sound = "tick" },
     { at = 55, thick = 36, half = 0.15, sound = "alarm", wild = true },
 }
-TURN_TIMER = nil                      -- { color, gen, t, stage, lit }
+TURN_TIMER_INTRO_THICK = 120         -- the one wide flash at the start of the turn
+TURN_TIMER_INTRO_HOLD = 0.9          -- seconds it stays fully on
+TURN_TIMER = nil                      -- { color, gen, t, stage, lit, intro }
 TURN_TIMER_SOUND = nil                -- which clip the music player has on
 
 local function stageAt(t)
@@ -33,14 +36,15 @@ function turnTimerXml()
     local tt = TURN_TIMER
     if not tt then return "" end
     local st = TURN_TIMER_STAGES[tt.stage]
-    local c = (st.wild and tt.white) and "#FFFFFFE6" or hexOf(tt.color, st.wild and 0.95 or 0.75)
+    local c = (st.wild and tt.white) and "#FFFFFFE6" or hexOf(tt.color, (st.wild or tt.intro) and 0.9 or 0.75)
+    local thick = tt.intro and TURN_TIMER_INTRO_THICK or st.thick
     local edge = 'raycastTarget="false" color="' .. c .. '"'
     local x = string.format('<Panel id="turnFlash" visibility="%s" active="false" raycastTarget="false" width="100%%" height="100%%" '
-        .. 'showAnimation="FadeIn" hideAnimation="FadeOut" animationDuration="%.2f">', tt.color, st.half)
-    x = x .. string.format('<Panel id="turnFlashT" %s rectAlignment="UpperCenter" width="100%%" height="%d"/>', edge, st.thick)
-    x = x .. string.format('<Panel id="turnFlashB" %s rectAlignment="LowerCenter" width="100%%" height="%d"/>', edge, st.thick)
-    x = x .. string.format('<Panel id="turnFlashL" %s rectAlignment="MiddleLeft" width="%d" height="100%%"/>', edge, st.thick)
-    x = x .. string.format('<Panel id="turnFlashR" %s rectAlignment="MiddleRight" width="%d" height="100%%"/>', edge, st.thick)
+        .. 'showAnimation="FadeIn" hideAnimation="FadeOut" animationDuration="%.2f">', tt.color, tt.intro and 0.25 or st.half)
+    x = x .. string.format('<Panel id="turnFlashT" %s rectAlignment="UpperCenter" width="100%%" height="%d"/>', edge, thick)
+    x = x .. string.format('<Panel id="turnFlashB" %s rectAlignment="LowerCenter" width="100%%" height="%d"/>', edge, thick)
+    x = x .. string.format('<Panel id="turnFlashL" %s rectAlignment="MiddleLeft" width="%d" height="100%%"/>', edge, thick)
+    x = x .. string.format('<Panel id="turnFlashR" %s rectAlignment="MiddleRight" width="%d" height="100%%"/>', edge, thick)
     if st.wild then
         for _, side in ipairs({ { "MiddleLeft", 70 }, { "MiddleRight", -70 } }) do
             x = x .. string.format('<Text raycastTarget="false" rectAlignment="%s" offsetXY="%d 0" width="60" height="420" fontSize="34" '
@@ -86,7 +90,7 @@ end
 function turnTimerStart(color, gen)
     turnTimerStop()
     if not SETTINGS.timer or not color then return end
-    local tt = { color = color, gen = gen, t = 0, stage = 1, lit = false }
+    local tt = { color = color, gen = gen, t = 0, stage = 1, lit = false, intro = true }
     TURN_TIMER = tt
     refreshGameUI()
     local function step()
@@ -108,5 +112,20 @@ function turnTimerStart(color, gen)
         pcall(function() if tt.lit then UI.show("turnFlash") else UI.hide("turnFlash") end end)
         Wait.time(step, TURN_TIMER_STAGES[tt.stage].half)
     end
-    Wait.time(step, 0.4)                       -- the rebuilt UI exists a moment later
+    -- the one wide flash first (the rebuilt UI exists a moment later), then the normal border
+    Wait.time(function()
+        if not stillOn(tt) then if TURN_TIMER == tt then turnTimerStop() end return end
+        pcall(function() UI.show("turnFlash") end)
+        Wait.time(function()
+            if TURN_TIMER ~= tt then return end
+            pcall(function() UI.hide("turnFlash") end)
+            Wait.time(function()
+                if TURN_TIMER ~= tt then return end
+                tt.intro = false
+                tt.t = tt.t + TURN_TIMER_INTRO_HOLD + 0.3
+                refreshGameUI()
+                Wait.time(step, 0.4)
+            end, 0.3)
+        end, TURN_TIMER_INTRO_HOLD)
+    end, 0.4)
 end

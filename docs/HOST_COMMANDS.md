@@ -169,6 +169,7 @@ A separate **Click to play: ON/OFF** button under Easy play. It's off by default
 
 On a person's turn, the edge of their screen (only theirs) glows in their marble colour until they play a card:
 
+- **Start:** one flash with a very wide border, so you notice even if you're zoned out.
 - **0-25 s:** a slow, gentle glow.
 - **25 s:** it flashes. **40 s:** faster, with ticking. **55 s:** a thick border flashing between their colour and
   white, "YOUR TURN" down both sides, faster ticks.
