@@ -10,7 +10,7 @@ function botPanelXml()
         -- no bots: the panel only holds the Stats button (once a game has started)
         if stats_btn == "" then return "" end
         return [[
-<Panel id="botPanel" rectAlignment="UpperLeft" offsetXY="15 -60" width="220" height="48" color="#000000B0" padding="8 8 8 8">
+<Panel id="botPanel" rectAlignment="UpperLeft" offsetXY="35 -60" width="220" height="48" color="#000000B0" padding="8 8 8 8">
   <VerticalLayout spacing="4">]] .. stats_btn .. [[</VerticalLayout>
 </Panel>]]
     end
@@ -46,7 +46,7 @@ function botPanelXml()
         controls_h = 200
     end
     return string.format([[
-<Panel id="botPanel" rectAlignment="UpperLeft" offsetXY="15 -60" width="280" height="%d" color="#000000B0" padding="8 8 8 8">
+<Panel id="botPanel" rectAlignment="UpperLeft" offsetXY="35 -60" width="280" height="%d" color="#000000B0" padding="8 8 8 8">
   <VerticalLayout spacing="4">
     <Text id="botTitle" fontSize="20" color="#FFD84D" fontStyle="Bold" preferredHeight="%d">Bots: %s</Text>
     <Text id="botStatus" fontSize="16" color="%s" text="%s"/>
