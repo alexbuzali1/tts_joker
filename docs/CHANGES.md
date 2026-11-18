@@ -90,8 +90,8 @@ see the last section, and [ARCHITECTURE.md](ARCHITECTURE.md) for the new layout.
   players start with (easy play, click to play) and the turn timer. Saved with the game.
 - **How to play:** a **?** button for everyone, with pages on easy play, click to play and the hover numbers. Room for
   screenshots (`assets/tutorial/`).
-- **Turn timer:** the player's screen edge glows in their colour on their turn, flashes after 15 s, ticks after
-  30 s and goes all out after 45 s. Clicks go through it; it stops when a card is played.
+- **Turn timer:** the player's screen edge glows in their colour on their turn, flashes after 25 s, ticks after
+  40 s and goes all out after 55 s. Clicks go through it; it stops when a card is played.
 - **Your own name:** a name field in the colour picker; used everywhere instead of the Steam name.
 - **Hands off:** only the host can pick up a card from another player's hand or play zone.
 - **Chat log:** moves are described by owner and distance ("Blue marble 2 into the finish + Alice's marble 5 (7

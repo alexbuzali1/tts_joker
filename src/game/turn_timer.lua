@@ -1,10 +1,10 @@
 -- game/turn_timer.lua  (Global script)
 -- The turn timer (user, 11-17): on a person's turn the edge of THEIR screen glows in their marble colour until they
 -- play a card, and it gets harder to ignore the longer they take:
---   0-15 s   a slow, gentle glow
---   15 s     it flashes
---   30 s     it flashes faster and ticks
---   45 s     all out: a thick border flashing between their colour and white, "YOUR TURN!" down both sides, faster ticks
+--   0-25 s   a slow, gentle glow
+--   25 s     it flashes
+--   40 s     it flashes faster and ticks
+--   55 s     all out: a thick border flashing between their colour and white, "YOUR TURN!" down both sides, faster ticks
 -- It never covers the table (a border only, and clicks go through it), stops the moment a card is played, holds
 -- while the game is paused, and only shows on the player's own screen. The ticks play through TTS's music player:
 -- TTS has no way to play a sound to one player, so everyone hears them. The host can switch the timer and the sounds
@@ -12,9 +12,9 @@
 
 TURN_TIMER_STAGES = {                 -- from `at` seconds: border thickness, seconds per flash half, sound
     { at = 0,  thick = 10, half = 1.0,  sound = nil },
-    { at = 15, thick = 16, half = 0.45, sound = nil },       -- (user, 11-18: 5 s more glow, 10 s more flashing)
-    { at = 30, thick = 22, half = 0.25, sound = "tick" },
-    { at = 45, thick = 36, half = 0.15, sound = "alarm", wild = true },
+    { at = 25, thick = 16, half = 0.45, sound = nil },       -- (user, 11-18: glow 10 -> 15 -> 25 s, flashing 5 -> 15 s)
+    { at = 40, thick = 22, half = 0.25, sound = "tick" },
+    { at = 55, thick = 36, half = 0.15, sound = "alarm", wild = true },
 }
 TURN_TIMER = nil                      -- { color, gen, t, stage, lit }
 TURN_TIMER_SOUND = nil                -- which clip the music player has on

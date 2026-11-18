@@ -84,7 +84,7 @@ function settingsXml()
     x[#x + 1] = row("New players: Click to play", onOff("click", SETTINGS.click))
     x[#x + 1] = row("Turn timer", onOff("timer", SETTINGS.timer))
     x[#x + 1] = row("Timer sounds", onOff("sound", SETTINGS.sound))
-    x[#x + 1] = '<Text fontSize="13" color="#BBBBBB" preferredHeight="52">Turn timer: the screen edge glows in the player\'s colour on their turn, flashes after 15 s, faster with ticking after 30 s, and goes all out after 45 s. The ticks play through TTS\'s music player, so everyone hears them.</Text>'
+    x[#x + 1] = '<Text fontSize="13" color="#BBBBBB" preferredHeight="52">Turn timer: the screen edge glows in the player\'s colour on their turn, flashes after 25 s, faster with ticking after 40 s, and goes all out after 55 s. The ticks play through TTS\'s music player, so everyone hears them.</Text>'
     x[#x + 1] = '</VerticalLayout></Panel>'
     return table.concat(x)
 end
