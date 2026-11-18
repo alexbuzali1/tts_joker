@@ -1,3 +1,6 @@
+-- The Reshuffle button (in the middle of the table, under the deck): gathers every played card from the play zones
+-- back into the middle and shuffles it into the draw deck. Players press it when the deck runs out; the Global
+-- script also does it by itself when the deck runs low (game/deck.lua autoReshuffleCheck calls `reshuffle` here).
 --#include "../helpers.lua"
 --#include "../cards.lua"
 
@@ -5,6 +8,7 @@ function onLoad()
     self.setName('Reshuffle Button')
 end
 
+-- Gather the play zones' cards into the middle, then shuffle once they've landed.
 function reshuffle()
 
     -- Find decks and cards in discard piles
@@ -35,18 +39,15 @@ function reshuffle()
         card.setPositionSmooth({0, 3 + i, 0})
     end
 
-    --Find full deck
+    --Shuffle the rebuilt deck once everything has landed
     Wait.time(function()
-        deck = findCenterDeck()
-    end,0.2)
-
-    --Shuffle deck
-    Wait.time(function()
-        deck.shuffle()
+        local deck = findCenterDeck()
+        if deck then deck.shuffle() end
         printToAll('Deck Reshuffled')
     end, 2)
 end
 
+-- Is the object lying on one of the play zones?
 function isInDiscardPile(obj,discard_pile_positions)
 
     local pos = obj.getPosition()
