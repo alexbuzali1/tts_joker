@@ -114,10 +114,10 @@ function startGame(num_players)
     local turn_chip = getObjectFromGUID(TURN_BUTTON_GUID)
     turnPlayerButtonSetup(turn_chip,"endTurnClicked","","Turn Button")
 
-    --TTS's own turn system only shows whose turn it is; game/turns.lua runs the turns. Interactions stay on for
-    --everyone so players can hover marbles for distances and sort their cards off-turn (moving marbles off-turn is
-    --blocked by the Global script instead).
-    Turns.enable = true
+    --TTS's own turn system is OFF (user, 11-18: "the turn indicator we don't use"): game/turns.lua runs the turns
+    --and shows them (banner, splash, turn timer). Interactions stay on for everyone so players can hover marbles for
+    --distances and sort their cards off-turn (moving marbles off-turn is blocked by the Global script instead).
+    Turns.enable = false
     Turns.pass_turns = true
     Turns.type = 1
     Turns.disable_interactations = false
