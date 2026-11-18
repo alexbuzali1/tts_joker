@@ -37,3 +37,31 @@ function cardLeftZone(zone, obj)
         pcall(easyCardRemoved, color, obj)
     end, 0.3)
 end
+
+-- Hands off other players' cards (user, 11-17): nobody but the host can pick up a card in another player's hand or
+-- lying on another player's play zone. Returns the reason, or nil when it's allowed. (The host can, to fix mistakes.)
+function cardTouchBlocked(color, card)
+    if not (card and (card.tag == "Card" or card.tag == "Deck") and color) then return nil end
+    local p = Player[color]
+    if p and p.host then return nil end
+    local blocked = nil
+    pcall(function()
+        for _, c in ipairs(PLAYER_COLORS[Global.getVar("num_players")] or {}) do
+            if c ~= color then
+                local q = Player[c]
+                if q and q.seated then
+                    for _, o in ipairs(q.getHandObjects() or {}) do
+                        if o == card then blocked = "That's " .. (personName(c) or c) .. "'s card" end
+                    end
+                end
+                local pile = (Global.getTable("discard_piles") or {})[c]
+                -- (your own card dropped on the wrong zone by mistake: you can still take it back)
+                if not blocked and pile and card.getVar("last_player_color") ~= color then
+                    local a, b = card.getPosition(), pile.getPosition()
+                    if isNear(a.x, a.z, b.x, b.z, 1.5) then blocked = "That card is on someone else's play zone" end
+                end
+            end
+        end
+    end)
+    return blocked
+end

@@ -33,6 +33,8 @@
 --#include "ui/color_picker.lua"
 --#include "ui/turn_ui.lua"
 --#include "ui/stats_panel.lua"
+--#include "ui/settings.lua"
+--#include "ui/tutorial.lua"
 
 -- the bots at the table
 --#include "bot/players.lua"
@@ -50,6 +52,7 @@
 --#include "game/stats.lua"
 --#include "game/undo.lua"
 --#include "game/save.lua"
+--#include "game/turn_timer.lua"
 
 -- ways to play
 --#include "play/easy_play.lua"
@@ -66,7 +69,9 @@
 function onLoad(saved)
     printToAll('Welcome to Joker!')
     loadGameState(saved)                                 -- a game in progress carries on (game/save.lua)
+    uiAssets()                                           -- the gear icon, tutorial images (ui/settings.lua)
     Wait.time(function() pcall(easyCleanup) end, 2)      -- easy play's leftover click targets, if any
+    Wait.time(function() pcall(refreshGameUI) end, 1)    -- the settings gear and "?" from the start screen on
 end
 
 function onSave()
@@ -85,6 +90,8 @@ function resetForNewGame(params)
     statsReset(params)
     undoReset()
     EASY.session = nil
+    turnTimerStop()
+    settingsApplyDefaultsAll()          -- easy play / click to play defaults for who hasn't chosen (ui/settings.lua)
 end
 
 ------------------------------------------------------------------------
@@ -100,6 +107,8 @@ end
 function onPlayerChangeColor(color)
     turnSeatTaken(color)                -- sat down in a bot's seat: it's theirs (game/turns.lua)
     hybridSeatTaken(color)              -- sat down in an in-person seat: it's theirs (play/hybrid.lua)
+    settingsApplyDefaults(color)        -- the host's easy play / click to play defaults (ui/settings.lua)
+    pcall(refreshGameUI)
 end
 
 function onPlayerConnect(player)
@@ -114,7 +123,11 @@ function onPlayerAction(player, action, targets)
     if not (player and Player.Action and action == Player.Action.PickUp) then return true end
     -- click to play: remember where a card in the hand was picked up, so a click can be told from a drag
     for _, o in ipairs(targets or {}) do
-        if o and o.tag == "Card" then pcall(easyCardLifted, player.color, o) end
+        if o and (o.tag == "Card" or o.tag == "Deck") then
+            local ok, why = pcall(cardTouchBlocked, player.color, o)          -- other players' cards (cards_played.lua)
+            if ok and why then broadcastToColor(why .. " - hands off!", player.color, { 1, 0.8, 0.3 }); return false end
+            if o.tag == "Card" then pcall(easyCardLifted, player.color, o) end
+        end
     end
     if actionTargetsMarble(targets) then
         -- easy play: clicking a glowing marble (or spot) chooses it instead of picking it up

@@ -101,8 +101,7 @@ function turnNamePlayZones()
             local who
             if botIsBot(color) then who = botName(color)
             else
-                local p = Player[color]
-                who = (p and p.steam_name and p.steam_name ~= "") and p.steam_name or marbleColorName(color)
+                who = personName(color) or marbleColorName(color)
             end
             pile.setName(who .. "'s Play Zone")
         end

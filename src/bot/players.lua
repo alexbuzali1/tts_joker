@@ -317,7 +317,7 @@ function botSeatToHuman(color)
             end
         end)
     end
-    local name = (Player[color].steam_name and Player[color].steam_name ~= "") and Player[color].steam_name or "A player"
+    local name = personName(color) or "A player"
     printToAll(name .. " took over " .. label .. "'s seat")
     if turnNamePlayZones then pcall(turnNamePlayZones) end
     refreshGameUI()

@@ -177,6 +177,28 @@ function JB.marbleRisk(S, p, parity, exitThreat)
     if exitThreat[p] then risk = math.max(risk, 0.2 + JB.STRATEGY * (JB.EXIT_CELL_RISK - 0.2)) end
     return risk
 end
+-- Defending someone else (user, 11-17): once the next player needs no defending (nothing left in start), the
+-- marble that guarded them is a runner like the others (needsDefender), and a marble further round that sits where
+-- it guards ANOTHER enemy who still has marbles in start (8 to 18 cells behind that enemy's exit, the same place as
+-- a home stretch is for the next player) earns JB.FOREIGN_POST_BONUS. Small on purpose: a nudge, not a parking order.
+JB.FOREIGN_POST_BONUS = 20
+JB.POST_NEAR, JB.POST_FAR = 8, 18
+function JB.foreignPost(S, seat, inStart)
+    if JB.needsDefender(S, seat, inStart) then return false end
+    local nxt = seat % S.N + 1
+    for _, m in ipairs(S.marbles) do
+        if m.seat == seat and m.kind == 'R' then
+            for e = 1, S.N do
+                if e ~= nxt and not JB.sameTeam(e, seat) and (inStart[e] or 0) > 0 then
+                    local d = (JB.exitCell(e) - m.p) % S.R
+                    if d >= JB.POST_NEAR and d <= JB.POST_FAR then return true end
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- Does `seat` need a defender near its start? Only while the next player (an enemy) still has marbles in start.
 function JB.needsDefender(S, seat, inStart)
     local nxt = seat % S.N + 1
@@ -243,6 +265,12 @@ function JB.evaluate(S, parity)
         for seat, n in pairs(stretch) do
             local f = (defender[seat] and JB.DEFENDER_BONUS or 0) - JB.CROWD_PENALTY * math.max(0, n - 2)
             if seat % 2 == parity then total = total + JB.STRATEGY * f else total = total - JB.STRATEGY * f end
+        end
+        for seat = 1, S.N do
+            if JB.foreignPost(S, seat, inStart) then
+                local f = JB.FOREIGN_POST_BONUS
+                if seat % 2 == parity then total = total + JB.STRATEGY * f else total = total - JB.STRATEGY * f end
+            end
         end
     end
     return total

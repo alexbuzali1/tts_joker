@@ -116,6 +116,7 @@ function turnBegin(seat, first)
                 "When you've played your card and moved, click here. Your next card is dealt and the bots play.")
         end
         if BOT_STATE.active then botSetStatus("Waiting for " .. name) end
+        pcall(turnTimerStart, color, gen)        -- the glowing screen edge (game/turn_timer.lua)
 
     else
         turnAdvance()                 -- empty seat that isn't a bot (a player left): skip it
@@ -141,6 +142,7 @@ function turnGameOver(team)
     glogGameOver(team)
     TURN_STATE.active = false
     TURN_STATE.busy = false
+    pcall(turnTimerStop)
     for _, color in ipairs(turnColors()) do turnHighlight(color, false) end
     turnShowTurn(nil, "Team " .. team .. " wins!", "#66FF66", false)
     turnButtonLabel("Game over\nTeam " .. team .. " wins!", "The game is finished. Press Stats in the top-left panel for the post-game stats.")
@@ -238,8 +240,9 @@ function turnSeatFromText(text)
     text = text:lower()
     for _, col in ipairs(turnColors() or {}) do
         local p = Player[col]
-        local n = p and p.steam_name
-        if n and n:lower():sub(1, #text) == text then return col end
+        for _, n in ipairs({ personName(col) or "", p and p.steam_name or "" }) do
+            if n ~= "" and n:lower():sub(1, #text) == text then return col end
+        end
     end
     return nil
 end

@@ -317,6 +317,20 @@ The simulated games were too noisy (60 games is about +-7 wins) and too unlike r
   Stats tops every seat (humans and bots) up to 6 cards. Tests in tests/test_game.lua.
 - Stats awards column: 330 wide, wraps to two lines and shrinks text to fit (rows 34 high).
 
+## Update: own entry before a teammate's tidy finish (flag of 2026-11-17, 2v2)
+- Green (3 home, a marble on its own entrance) split a 7 to move teammate Orange's finish marble 3 -> 4 instead of
+  entering its own 4th marble. The tidy move scored +320 (clean house 220 + finish pack 100) against +120 for the clean
+  entry. The user: "the bot should have moved itself in there, it was more impactful than helping me."
+- Fix: tidying a **teammate's** finish counts `JB.TEAMMATE_TIDY_SHARE` (0.3) of the clean-house and finish-pack
+  bonuses, unless that teammate has a marble within `JB.THREAT_RANGE` of its entrance (then the gap is urgent). The
+  teammate can tidy it with a small card on their own turn. Test in `test_bot_search.lua`.
+- Also: a flag waiting in the save kept a live link to the bot's move history and picked up later moves; it's a copy now.
+- Defence (user's list, same day): "stop playing defense on the person in front if they are all the way in; that ball
+  should be the primary runner, a further ball should look to play defense on other players". The first half was
+  already true (`JB.needsDefender`, flag 49) and is now tested. New: once the next player has nothing in start, a
+  marble 8-18 cells behind ANOTHER enemy's exit, while that enemy still has marbles in start, earns
+  `JB.FOREIGN_POST_BONUS` (20). Kept small so it nudges rather than parks a runner.
+
 ## Update: all-bot mode and the game log (`host/game_log.lua`)
 - **All-bot mode**: type `!allbots` in chat (toggle; `!allbots on` / `!allbots off`) BEFORE Start Game. Every seat
   is played by a bot (humans get no cards and watch; the "nobody seated" pause is off).

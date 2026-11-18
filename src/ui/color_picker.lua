@@ -83,7 +83,7 @@ local function onePickerXml(c)
     local st = MARBLE_STYLE[tgt] or {}
     local hue = PICK_HUE[c] or st.h or 0
     local x = {}
-    local extra = (#targets > 1 and 40 or 0) + (tgt ~= c and 40 or 0)
+    local extra = (#targets > 1 and 40 or 0) + 40
     x[#x + 1] = string.format('<Panel id="pick_%s" visibility="%s" position="500 -250" width="400" height="%d" color="#000000D8" padding="12 12 10 10">'
         .. '<VerticalLayout spacing="6" childForceExpandHeight="false">'
         .. '<Text fontSize="24" fontStyle="Bold" color="#FFFFFF" preferredHeight="32">%s</Text>', c, c, 500 + extra,
@@ -99,6 +99,10 @@ local function onePickerXml(c)
     if tgt ~= c then                                       -- an in-person seat: its name
         x[#x + 1] = string.format('<InputField id="pickName_%s" onEndEdit="pickerName" fontSize="17" preferredHeight="34" placeholder="Name (e.g. Pat)" text="%s"/>',
             c, xmlEscape(IRL and IRL.names and IRL.names[tgt] or ""))
+    else                                                   -- your own name (user, 11-17); empty = your Steam name
+        local e = PLAYER_NAMES[c]
+        x[#x + 1] = string.format('<InputField id="pickName_%s" onEndEdit="pickerName" fontSize="17" preferredHeight="34" placeholder="Your name (blank = Steam name)" text="%s"/>',
+            c, xmlEscape(e and e.steam == (Player[c] and Player[c].steam_name) and e.name or ""))
     end
     -- the colour square
     x[#x + 1] = '<VerticalLayout spacing="0" preferredHeight="200">'
@@ -241,13 +245,21 @@ function pickerTarget(player, value, id)
     refreshGameUI()
 end
 
--- the host named an in-person seat
+-- a player named themselves, or the host named an in-person seat
+PLAYER_NAME_MAX = 20
 function pickerName(player, value, id)
     local c = tostring(id or ""):match("^pickName_(%a+)$")
-    if not c or not player or player.color ~= c or not IRL then return end
+    if not c or not player or player.color ~= c then return end
     local tgt = pickTarget(c)
-    if tgt == c then return end
-    local name = tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    local name = tostring(value or ""):gsub("[%c%[%]<>]", ""):gsub("^%s+", ""):gsub("%s+$", "")
+    name = name:sub(1, PLAYER_NAME_MAX)
+    if tgt == c then
+        if name == "" then PLAYER_NAMES[c] = nil
+        else PLAYER_NAMES[c] = { name = name, steam = player.steam_name } end
+        turnRefreshNames()
+        return                                             -- no rebuild: it would reset the field being typed in
+    end
+    if not IRL then return end
     IRL.names[tgt] = name ~= "" and name or nil
     turnRefreshNames()
     refreshGameUI()

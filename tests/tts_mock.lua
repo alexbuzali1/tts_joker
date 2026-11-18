@@ -249,7 +249,8 @@ function M.setup(N, seated)
         getVar = function(k) if k == "num_players" then return N end end,
         getTable = function(k)
             if k == "non_start_points" then return M.nsp elseif k == "marbles_by_player" then return M.mbp
-            elseif k == "discard_piles" then return M.discard elseif k == "boards_by_player" then return M.boards end
+            elseif k == "discard_piles" then return M.discard elseif k == "boards_by_player" then return M.boards
+            elseif k == "hover_numbers_by_player" then return M.hover end
         end,
         call = function(fn, params) return _G[fn](params) end,
         getVectorLines = function() return M.lines or {} end,

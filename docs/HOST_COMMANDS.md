@@ -10,6 +10,22 @@ Chat commands for the host of a Joker game in Tabletop Simulator.
 - Commands and their arguments are case-insensitive. Extra spaces are fine.
 - Type `!bot` (or `!help`) in game for the short version and the current settings.
 
+## Settings menu (gear, top right, host only)
+
+The gear at the top right opens the host's settings, from the start screen on. The commands below still work; the
+menu is the same settings without typing:
+
+- **Bot level** 1-10 (`!level`) and **animation speed** (`!speed`).
+- **Hybrid mode** (`!hybrid`): from the next Start Game, empty seats are played at a real board.
+- **New players: Easy play / Click to play**: what a player starts with when they sit down or a game starts. Each
+  player can still switch their own at the bottom right, and once they do, their choice sticks.
+- **Turn timer** and **Timer sounds**: see "Turn timer" below.
+
+Saved with the game. Next to the gear, **?** opens "How to play" for any player.
+
+**Table flipping** can't be switched off from a script. In TTS: **Options → Permissions → untick "Table Flip"**.
+Players you promote can still flip, and so can the host.
+
 ## Bot settings
 
 | Command | What it does | Default |
@@ -138,6 +154,8 @@ With it on:
 - **Card taken back:** the glowing stops. Playing a different card starts over with that card.
 - **Moving by hand:** click Cancel, then drag the marble yourself.
 
+- **Changing your mind:** click the marble you just picked again to un-pick it (or Cancel).
+
 ## Click to play (bottom right, one per player)
 
 A separate **Click to play: ON/OFF** button under Easy play. It's off by default and independent of easy play (it works with easy play on or off).
@@ -146,6 +164,17 @@ A separate **Click to play: ON/OFF** button under Easy play. It's off by default
 - Click and hold (over half a second) while you think: letting go puts the card back in your hand, not played. A quick click after that still plays it.
 - Dragging still works: onto the zone yourself, or along your hand to rearrange.
 - Only on your own turn, and only your first card.
+
+## Turn timer
+
+On a person's turn, the edge of their screen (only theirs) glows in their marble colour until they play a card:
+
+- **0-10 s:** a slow, gentle glow.
+- **10 s:** it flashes. **15 s:** faster, with ticking. **30 s:** a thick border flashing between their colour and
+  white, "YOUR TURN" down both sides, faster ticks.
+- It never covers the table (clicks go through it), stops as soon as a card is played, and holds while paused.
+- The ticks play through TTS's music player, so **everyone** hears them (TTS can't play a sound to one player). They
+  replace whatever the music player was playing. Switch them off in the settings.
 
 ## Marble colour picker
 
@@ -158,6 +187,15 @@ Before the game starts, each player gets their own picker (only they see it):
 - **Effects:** Plain, Pulse (brightness breathes), Twinkle (each marble flickers). Effects keep running through the game and after a reload.
 
 Names in chat ("Green", "Magenta"...) follow the picked colour, even while an effect animates it.
+
+- **Your name:** a field at the top of the picker. Type the name you want to be called; blank goes back to your
+  Steam name. It's used in chat, on the banner, the play zones and the stats, and only while you're the one in that
+  seat. The host's picker also names in-person seats.
+
+## Other players' cards
+
+Only the host can pick up a card that's in another player's hand or on another player's play zone. Everyone else
+gets "hands off!". Your own card dropped on the wrong zone can still be taken back.
 
 ## Flagging bad bot moves
 

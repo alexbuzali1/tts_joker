@@ -945,6 +945,17 @@ do
     check(times.Slow == 1.5 and times.Normal == 1 and times.Fast == 0.5 and times.Instant == 0,
           "the card's flight follows the bot speed: slow 1.5 s, normal 1 s, fast 0.5 s, instant")
     check(GAME_STATS.card_played == true, "... it counts as played")
+    -- it bounced off the zone after landing (user, 11-17): put back on it
+    local zone = Global.getTable("discard_piles").White
+    local zp = zone.getPosition()
+    M.hands.White = { h3 }                                    -- (it left the hand)
+    h5.pos = { x = zp.x + 4, y = zp.y, z = zp.z + 1 }
+    M.pumpFor(3)
+    check(isNear(h5.pos.x, h5.pos.z, zp.x, zp.z, 0.5), "a clicked card that bounces off the zone is put back on it")
+    h5.pos = { x = 0, y = 3, z = -90 }                        -- jumped back into the hand, nobody picked it up
+    M.hands.White = { h5, h3 }
+    M.pumpFor(5)
+    check(isNear(h5.pos.x, h5.pos.z, zp.x, zp.z, 0.5), "... even when it jumps back into the hand on its own (a player who isn't the host)")
     M.hands.White = { h3 }
     onPlayerAction(white, Player.Action.PickUp, { h3 })
     onObjectDrop("White", h3)
@@ -963,6 +974,11 @@ do
     onObjectDrop("White", h4)
     M.pumpFor(1.5)
     check(EASY.session and EASY.session.card == "4", "click-to-play also works from onObjectPickedUp + the hand area")
+    onObjectPickedUp("White", h4)                              -- taken back into the hand right after it landed
+    h4.pos = { x = 1, y = 3, z = -90 }
+    onObjectDrop("White", h4)
+    M.pumpFor(3)
+    check(h4.pos.z == -90, "a clicked card taken back into the hand stays there")
     easyCancel()
     -- independent of easy play: on without it (the card is played, no glowing), off with it
     EASY.on.White = false
@@ -1343,6 +1359,179 @@ do
     check(UI.xml:find('id="statsBtn"', 1, true) and not UI.xml:find('id="undoBtn"', 1, true), "after the game the button is Stats again")
     undoClicked({ color = "White" })
     check(GAME_STATS.winner == 1, "Undo does nothing once the game is over")
+end
+
+------------------------------------------------------------------------
+print("== 11-17 list: settings, tutorial, names, turn timer, chat, hands off, un-pick, hover, face-down draw")
+do
+    local JB = JokerBot
+    local function put(color, k, kind, p, seat) M.place(color, k, JB.cellToIndex(kind, p, seat)) end
+    local white, orange = { color = "White", steam_name = "Human-White" }, { color = "Orange", steam_name = "Human-Orange" }
+    local function startTurn(seat)
+        fresh(4, { White = true, Orange = true, Green = true, Purple = true })
+        BOT_STATE.active = false
+        TURN_STATE.active, TURN_STATE.seat, TURN_STATE.busy = true, seat, false
+        EASY_TEST_GEN = (EASY_TEST_GEN or 0) + 1000
+        TURN_STATE.gen = EASY_TEST_GEN
+        statsTurnStart(PLAYER_COLORS[4][seat])
+    end
+
+    -- settings (host only)
+    fresh(4, { White = true, Orange = true, Green = true, Purple = true })
+    refreshGameUI()
+    check(UI.xml:find('id="settingsGear" visibility="Host"', 1, true) and UI.xml:find('id="tutorialBtn"', 1, true), "the gear (host) and ? (everyone) are on screen")
+    settingsToggle(orange)
+    check(not UI.xml:find('id="settingsPanel"', 1, true), "only the host opens the settings")
+    settingsToggle(white)
+    check(UI.xml:find('id="settingsPanel"', 1, true) and wellFormed(UI.xml), "the host's gear opens the settings menu (well formed)")
+    local lv, sp = BOT_DIFFICULTY, BOT_STATE.speed_index
+    settingsClick(white, nil, "set_level_5")
+    settingsClick(white, nil, "set_speed_3")
+    settingsClick(white, nil, "set_hybrid_on")
+    check(BOT_DIFFICULTY == 5 and BOT_STATE.speed_index == 3 and IRL.mode == true, "level, speed and hybrid from the menu")
+    settingsClick(orange, nil, "set_level_2")
+    check(BOT_DIFFICULTY == 5, "... not by anyone else")
+    settingsClick(white, nil, "set_hybrid_off"); botSetDifficulty(lv); BOT_STATE.speed_index = sp
+    EASY.chosen = {}; EASY.on.Orange = nil
+    settingsClick(white, nil, "set_easy_on")
+    check(EASY.on.Orange == true and SETTINGS.easy == true, "default easy play ON reaches players who haven't chosen")
+    easyToggle(orange)                                    -- Orange switches it off themselves
+    settingsClick(white, nil, "set_easy_off"); settingsClick(white, nil, "set_easy_on")
+    check(EASY.on.Orange == nil or EASY.on.Orange == false, "... a player's own choice sticks")
+    settingsClick(white, nil, "set_easy_off")
+    local function rawSave() local enc = JSON.encode; JSON.encode = function(t) return t end; local r = saveGameState(); JSON.encode = enc; return r end
+    local saved = rawSave()
+    check(saved.settings and saved.settings.easy == false and saved.settings.timer ~= nil, "the settings are saved with the game")
+    settingsClick(white, nil, "set_close")
+    check(not UI.xml:find('id="settingsPanel"', 1, true), "Close closes it")
+
+    -- tutorial (per player)
+    tutorialToggle(orange)
+    check(UI.xml:find('id="tut_Orange" visibility="Orange"', 1, true) and UI.xml:find("Easy play", 1, true) and wellFormed(UI.xml), "? opens how-to-play for that player only")
+    tutorialPage(orange, nil, "tutNext_Orange")
+    check(TUTORIAL.Orange == 2 and UI.xml:find("Click to play  (2 / ", 1, true), "Next goes to page 2")
+    tutorialPage(white, nil, "tutClose_Orange")
+    check(TUTORIAL.Orange == 2, "someone else can't close it")
+    tutorialPage(orange, nil, "tutClose_Orange")
+    check(TUTORIAL.Orange == nil and not UI.xml:find('id="tut_Orange"', 1, true), "Close closes it")
+
+    -- a name of your own, in the colour picker
+    showColorPickers()
+    check(UI.xml:find('id="pickName_Orange"', 1, true) ~= nil, "everyone's colour picker has a name field")
+    pickerName(orange, "  Henry ", "pickName_Orange")
+    M.pumpFor(0.5)
+    check(playerLabel("Orange") == "Henry", "the picked name is used (" .. tostring(playerLabel("Orange")) .. ")")
+    PLAYER_NAMES.Orange.steam = "someone else"
+    check(playerLabel("Orange") == "Human-Orange", "... not for somebody else sitting there later")
+    pickerName(orange, "Henry", "pickName_Orange")
+    check(rawSave().names.Orange.name == "Henry", "names are saved with the game")
+    pickerName(orange, "", "pickName_Orange")
+    check(playerLabel("Orange") == "Human-Orange", "a blank name goes back to the Steam name")
+    hideColorPickers()
+
+    -- the turn timer
+    startTurn(1)
+    SETTINGS.timer, SETTINGS.sound = true, true
+    local plays = 0
+    MusicPlayer = { play = function() plays = plays + 1 end, pause = function() end, setCurrentAudioclip = function(t) MusicPlayer.url = t.url end }
+    turnTimerStart("White", TURN_STATE.gen)
+    check(TURN_TIMER and UI.xml:find('id="turnFlash" visibility="White"', 1, true) and UI.xml:find('raycastTarget="false"', 1, true)
+          and wellFormed(UI.xml), "a person's turn: their screen edge glows (clicks go through)")
+    M.pumpFor(11)
+    check(TURN_TIMER.stage == 2 and plays == 0, "flashing after 10 s, no sound yet")
+    M.pumpFor(5)
+    check(TURN_TIMER.stage == 3 and plays == 1 and tostring(MusicPlayer.url):find("tick", 1, true), "faster with ticks after 15 s")
+    M.pumpFor(15)
+    check(TURN_TIMER.stage == 4 and UI.xml:find("Y&#10;O&#10;U", 1, true) and tostring(MusicPlayer.url):find("alarm", 1, true), "all out after 30 s")
+    GAME_STATS.card_played = true
+    M.pumpFor(1)
+    check(TURN_TIMER == nil, "a card played stops it")
+    startTurn(1)
+    SETTINGS.timer = false
+    turnTimerStart("White", TURN_STATE.gen)
+    check(TURN_TIMER == nil, "the host can switch it off")
+    SETTINGS.timer = true
+
+    -- a flag keeps the bot moves up to when it was made
+    BOT_STATE.history = { { game_turn = 1 }, { game_turn = 2 } }
+    BOT_FLAGS = {}
+    WebRequest = { custom = function(url, m, a, body, h, cb) cb({ is_error = true, error = "offline" }) end }
+    flagBadMove({ color = "White" })
+    BOT_STATE.history[3] = { game_turn = 3 }
+    local fl = BOT_FLAGS[#BOT_FLAGS]
+    check(fl and #fl.recent_bot_moves == 2, "a waiting flag keeps the bot moves up to when it was made (" .. tostring(fl and #fl.recent_bot_moves) .. ")")
+
+    -- the chat log: a 7 split in words
+    startTurn(1)
+    put("White", 1, 'R', 10, 1)
+    put("Green", 1, 'R', 50, 3)                       -- a 7 splits with a teammate's marble
+    local S = botReadState()
+    local seven
+    for _, a in ipairs(JB.legalActions(S, 1, { '7' })) do if #a.steps == 2 then seven = a; break end end
+    local okd, said = pcall(moveDescription, S, seven, false)
+    said = okd and said or ""
+    check(said:find("7 split", 1, true) and said:find("Human-White's marble", 1, true) and said:find("Human-Green's marble", 1, true) and not said:find("#", 1, true), "a 7 split in words: " .. said)
+
+    -- hands off other players' cards
+    startTurn(1)
+    local oc = M.card("9 of Clubs", "Orange")
+    M.hands.Orange = { oc }
+    check(onPlayerAction(white, Player.Action.PickUp, { oc }) == true, "the host can still pick up anyone's card")
+    local purple = { color = "Purple" }
+    check(onPlayerAction(purple, Player.Action.PickUp, { oc }) == false and M.broadcasts[#M.broadcasts]:find("hands off", 1, true),
+          "someone else can't take a card from your hand")
+    local zc = M.card("3 of Clubs", "White")
+    zc.setPosition(M.discard.White.pos)
+    check(onPlayerAction(purple, Player.Action.PickUp, { zc }) == false, "... or off your play zone")
+    M.hands.Orange = {}
+
+    -- easy play: click the picked marble again to un-pick it
+    startTurn(1)
+    EASY.on.White = true
+    put("White", 1, 'R', 10, 1)
+    put("White", 2, 'R', 30, 1)
+    put("Orange", 1, 'R', 40, 2)
+    put("Orange", 2, 'R', 50, 2)
+    play("White", "Joker")
+    M.pumpFor(0.1)
+    local W = Global.getTable("marbles_by_player").White
+    onPlayerAction(white, Player.Action.PickUp, { W[1] })
+    check(EASY.session and #EASY.session.picks == 1, "(a marble picked)")
+    onPlayerAction(white, Player.Action.PickUp, { W[1] })
+    check(EASY.session and #EASY.session.picks == 0 and EASY.session.next and EASY.session.next.m1, "clicking it again un-picks it")
+    easyCancel()
+
+    -- hover: a marble all the way in shows no numbers; near its finish, numbers for running past it too
+    startTurn(1)
+    M.hover = { White = {} }
+    for n = 1, 13 do M.hover.White[n] = M.newObj({ pos = { x = 4 + 0.5 * n, y = 10, z = 0 } }) end
+    HOVER_PASS.White = {}
+    for n = 1, 13 do HOVER_PASS.White[n] = M.newObj({ pos = { x = 0, y = 14, z = 0 }, name = "HoverPass_White_" .. n }) end
+    HOVER_MINUS8.White = M.newObj({ pos = { x = 4, y = 12, z = 0 } })
+    local hn = M.hover.White
+    local up = function(o) return o.pos.y < 9 end
+    arrangeHoverNumbers("White", JB.cellToIndex('G', 5, 1), 1, { r = 1, g = 1, b = 1 }, 1)
+    local any = false
+    for n = 1, 13 do if up(hn[n]) or up(HOVER_PASS.White[n]) then any = true end end
+    check(not any, "a marble in the last finish hole shows no numbers")
+    arrangeHoverNumbers("White", JB.cellToIndex('G', 2, 1), 1, { r = 1, g = 1, b = 1 }, 1)
+    check(up(hn[3]) and not up(hn[4]) and not up(HOVER_PASS.White[1]), "in the finish: just the holes left")
+    arrangeHoverNumbers("White", JB.cellToIndex('R', 1, 1), 1, { r = 1, g = 1, b = 1 }, 1)   -- 2 before its entrance
+    check(up(hn[7]) and not up(hn[8]) and up(HOVER_PASS.White[3]) and up(HOVER_PASS.White[13]) and not up(HOVER_PASS.White[2]),
+          "near its finish: 1-7 into it, and light-blue 3-13 for running past it")
+    local nsp = Global.getTable("non_start_points")
+    local p3 = HOVER_PASS.White[3].pos
+    local cell4 = nsp[JB.cellToIndex('R', 4, 1)].position
+    check(math.abs(p3.x - cell4.x) < 0.01 and math.abs(p3.z - cell4.z) < 0.01, "... the 3 past it is on the ring cell after the entrance")
+
+    -- drawing: face down into the hand
+    startTurn(1)
+    M.hands.White = {}
+    drawCardsFaceDown("White", 1)
+    M.pumpFor(3)
+    local got
+    for _, o in ipairs(getAllObjects()) do if o.tag == "Card" and o.pos and o.pos.z == -90 and math.abs(o.pos.y - 3.2) < 0.01 then got = o end end
+    check(got and got.rot and got.rot.z == 180, "a drawn card goes to the hand face down")
 end
 
 print(string.format("\npassed %d, failed %d", passed, failed))

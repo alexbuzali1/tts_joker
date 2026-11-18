@@ -29,6 +29,10 @@ function easyFlightTime()
 end
 EASY_PLAY_STEP = 0.03
 EASY_HAND_HOP = 3.5               -- first hop out of the hand zone, toward the play zone
+EASY_LAND_HEIGHT = 0.6           -- let go this high above the zone (the bots' height); from 1 it could bounce off
+EASY_KEEP_CHECKS = { 0.5, 1.2, 2.5, 4 }   -- seconds after landing to check the card is still on the zone (a
+                                          -- player who isn't the host is a network delay away)
+
 EASY.lift = EASY.lift or {}
 
 local function canClickPlay(color)
@@ -63,6 +67,33 @@ local function inHandArea(color, card)
     return ok and inside, "hand area"
 end
 
+-- A clicked card that bounced or slid off the play zone after landing (user, 11-17: "it goes to the discard
+-- correctly but then jumps out"; only for swcyolo, who isn't the host: their game's late update about the card can
+-- move it after the script put it on the zone) is put back on it, gently, even when it went back to the hand. Left
+-- alone once it merged into the pile, once its player picks it up again (a real take-back is always a pick-up), or
+-- once the turn moved on.
+function easyKeepOnZone(card, pile, color, gen)
+    local fixes = 0
+    for _, t in ipairs(EASY_KEEP_CHECKS) do
+        Wait.time(function()
+            pcall(function()
+                if card == nil or card.isDestroyed() then return end                  -- merged into the pile
+                if TURN_STATE and gen and TURN_STATE.gen ~= gen then return end
+                if card.getVar("held_by") ~= nil then return end                     -- picked up again since it landed
+                local holder = card.held_by_color
+                if type(holder) == "string" and holder ~= "" then return end      -- being held right now
+                local p, pp = card.getPosition(), pile.getPosition()
+                if isNear(p.x, p.z, pp.x, pp.z, 1.2) then return end
+                if fixes >= 3 then return end
+                fixes = fixes + 1
+                clickDebug("the card came off the zone: putting it back")
+                card.setRotation({ 0, pile.getRotation().y, 0 })
+                card.setPositionSmooth({ pp.x, pp.y + EASY_LAND_HEIGHT, pp.z }, false, true)
+            end)
+        end, t)
+    end
+end
+
 -- called from onPlayerAction (before the pick-up) and onObjectPickedUp (after): the first one counts
 function easyCardLifted(color, card)
     if not EASY.click[color] then return end
@@ -94,14 +125,16 @@ function easyCardDropped(color, card)
     -- TTS's hand zone pulls back a card that glides out of it, so the card first hops just outside the hand (a
     -- teleport), then flies to the play zone in EASY_PLAY_FLIGHT seconds (moved step by step, locked so physics
     -- leaves it alone), turning face up, and drops onto the zone
+    local gen = TURN_STATE and TURN_STATE.gen
     local function land()
         pcall(function()
             local pp, rot = pile.getPosition(), pile.getRotation()
             card.setLock(false)
             card.setVar("last_player_color", color)
             card.setRotation({ 0, rot.y, 0 })
-            card.setPosition({ pp.x, pp.y + 1, pp.z })
+            card.setPosition({ pp.x, pp.y + EASY_LAND_HEIGHT, pp.z })
         end)
+        easyKeepOnZone(card, pile, color, gen)
     end
     local flight = easyFlightTime()
     local function fly()
@@ -130,7 +163,7 @@ function easyCardDropped(color, card)
                 local pp = pile.getPosition()
                 local t = k / steps
                 local e = t * t * (3 - 2 * t)                       -- ease in and out
-                local to = { x = pp.x, y = pp.y + 1, z = pp.z }
+                local to = { x = pp.x, y = pp.y + EASY_LAND_HEIGHT, z = pp.z }
                 local arc = 2.5 * math.sin(math.pi * t)             -- a little arc over the table
                 card.setPosition({ from.x + (to.x - from.x) * e, from.y + (to.y - from.y) * e + arc, from.z + (to.z - from.z) * e })
             end)
@@ -156,6 +189,8 @@ end
 function clickToggle(player)
     if not player or not player.color then return end
     EASY.click[player.color] = not EASY.click[player.color]
+    EASY.chosen = EASY.chosen or {}
+    EASY.chosen[player.color] = true                     -- their own choice beats the host's default (ui/settings.lua)
     broadcastToColor(EASY.click[player.color] and "Click to play ON: click a card in your hand to play it (drag to rearrange)"
                      or "Click to play OFF: drag cards onto your play zone", player.color, { 0.6, 1, 0.6 })
     refreshGameUI()

@@ -86,12 +86,25 @@ function botChatName(color)
     return "[" .. colorHex(nameColorOnDark(color)) .. "]" .. botName(color) .. "[-]"
 end
 
--- name to show in chat for a colour: coloured bot label, or the human's steam name
+-- A person can pick the name they're shown by (user, 11-17): a field in their colour picker, like the host names
+-- in-person seats. Kept per seat with the Steam name it was set for, so someone else sitting there later isn't
+-- called by it. Saved with the game (game/save.lua).
+PLAYER_NAMES = PLAYER_NAMES or {}      -- [seat colour] = { name = "Henry", steam = "Henny P" }
+function personName(color)
+    local p = Player[color]
+    local steam = p and p.steam_name
+    local e = PLAYER_NAMES[color]
+    if e and e.name and e.name ~= "" and e.steam == steam then return e.name end
+    if steam and steam ~= "" then return steam end
+    return nil
+end
+
+-- name to show in chat for a colour: coloured bot label, or the human's (picked or Steam) name
 function playerLabel(color)
     if botIsBot(color) then return botChatName(color) end
     if irlIsSeat(color) then return irlLabel(color) end
-    local p = Player[color]
-    if p and p.steam_name and p.steam_name ~= "" then return p.steam_name end
+    local who = personName(color)
+    if who then return who end
     return marbleColorName(color)          -- empty seat: its marble colour, not the TTS seat colour
 end
 
@@ -107,7 +120,58 @@ end
 function marbleOwnerText(color)
     local hex = colorHex(nameColorOnDark(color))
     if botIsBot(color) then return "[" .. hex .. "]" .. marbleColorName(color) .. " marble[-]" end
-    local p = Player[color]
-    local who = (p and p.steam_name and p.steam_name ~= "") and p.steam_name or color
+    local who = personName(color) or color
     return "[" .. hex .. "]" .. who .. "'s marble[-]"
+end
+
+------------------------------------------------------------------------
+-- A move in words, for the chat log and easy play's choices (user, 11-17: show how a 7 is split; "marble 2" read
+-- like the card played, so marbles are named by owner and the moves by distance):
+--   "Blue marble 2 into the finish + Alice's marble 5 (7 split 2 + 5)"
+--   "Alice's marble 8 back (bonks Blue marble)"      "Blue marble jumps onto Alice's marble (Joker)"
+-- S = the board before the move, act = a JokerBot action. chat = true: names in their marble colours (chat only).
+------------------------------------------------------------------------
+local function ownerWord(color, chat)
+    if chat then return marbleOwnerText(color) end
+    if botIsBot(color) then return marbleColorName(color) .. " marble" end
+    local who = irlIsSeat(color) and ((IRL.names and IRL.names[color]) or marbleColorName(color)) or personName(color) or marbleColorName(color)
+    return who .. "'s marble"
+end
+function moveDescription(S, act, chat)
+    if not (S and act and act.steps and act.steps[1]) then return "" end
+    local colors = PLAYER_COLORS[Global.getVar("num_players")] or {}
+    local function owner(mi) local m = S.marbles[mi]; return ownerWord(colors[m.seat], chat) end
+    local bonks = {}
+    for _, b in ipairs(act.bumpList or {}) do
+        local z = S.marbles[b.idx]
+        if z then bonks[#bonks + 1] = owner(b.idx) end
+    end
+    local tail = #bonks > 0 and (" (bonks " .. table.concat(bonks, " and ") .. ")") or ""
+    if act.card == '$' then
+        local tgt = act.bumpList and act.bumpList[1] and act.bumpList[1].idx
+        if tgt then return owner(act.steps[1].mi) .. " jumps onto " .. owner(tgt) .. " (Joker)" end
+    end
+    local cur, parts, sizes = {}, {}, {}
+    for _, st in ipairs(act.steps) do
+        local m = cur[st.mi] or S.marbles[st.mi]
+        local txt, n
+        if m.kind == 'S' then
+            txt = "comes out"
+        elseif m.kind == 'R' and st.kind == 'R' then
+            if act.card == '8' then txt, n = "8 back", 8
+            else n = (st.p - m.p) % S.R; txt = tostring(n) end
+        elseif m.kind == 'R' and st.kind == 'G' then
+            n = JokerBot.distToEntrance(S, m.seat, m.p) + st.p
+            txt = n .. " into the finish"
+        else
+            n = st.p - m.p
+            txt = n .. " in the finish"
+        end
+        parts[#parts + 1] = owner(st.mi) .. " " .. txt
+        if n then sizes[#sizes + 1] = tostring(n) end
+        cur[st.mi] = { seat = m.seat, kind = st.kind, p = st.p }
+    end
+    local split = ""
+    if act.card == '7' and #act.steps > 1 then split = " (7 split " .. table.concat(sizes, " + ") .. ")" end
+    return table.concat(parts, " + ") .. split .. tail
 end

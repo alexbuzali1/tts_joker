@@ -313,17 +313,13 @@ function botTakeTurn(color, done, opts)
                     afterCard(function() if alive() then botEndTurn(color, finish) end end)
                     return
                 end
-                -- describe the move for the chat log
-                local parts = {}
-                for _, st in ipairs(act.steps) do
-                    local m = act.state.marbles[st.mi]
-                    parts[#parts + 1] = marbleOwnerText(colors[m.seat]) .. " " .. (((st.mi - 1) % 5) + 1)
-                end
+                -- describe the move for the chat log (ui/names.lua moveDescription)
+                local said = moveDescription(S, act, true)
                 botSetStatus(botName(color) .. ": " .. botCardName(act.card) .. how, color)
                 afterCard(function()
                     if not alive() then return end
                     botSafe("move", function()
-                        printToAll(botChatName(color) .. " moves " .. table.concat(parts, " and "))
+                        printToAll(botChatName(color) .. " moves " .. said)
                         botRunSteps(act, 1, objs, nsp, function()
                             botAfter(0.4, function()
                                 if not alive() then return end

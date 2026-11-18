@@ -5,8 +5,9 @@
 --   * sits a little above an empty hole, and jumps above a marble sitting in the hole so the marble doesn't hide it
 --   * is turned toward the hovering player's seat (TTS doesn't tell scripts where a player's camera is)
 --   * stays put while you carry a marble (dragging it over other marbles doesn't switch the numbers)
--- The 13 number pieces per seat are spawned at setup (hover_numbers.lua); the "-8" piece is spawned here when it's
--- first needed. Global onObjectHover calls hoverMarble.
+-- Near its own finish the marble gets a second set of numbers (light blue) for running past the entrance instead.
+-- The 13 number pieces per seat are spawned at setup (hover_numbers.lua); the "-8" piece and the second set are
+-- spawned here when they're first needed. Global onObjectHover calls hoverMarble.
 
 -- Where a hover number goes: on the hole, or (user) lifted above a marble sitting in it, so the marble doesn't
 -- hide it (like easy play's rings). occupied = marblesOnSpots(), one board scan per hover.
@@ -80,10 +81,25 @@ function arrangeHoverNumbers(player_color, marble_index, team_number, marble_col
     -- the -8 marker (an 8 played backwards) goes in before the loop, which can return early
     hoverPlaceMinus8(player_color, marble_index, marble_color, alpha * ((view_team or team_number) - 1), player_colors)
 
+    -- a marble all the way in (the deepest finish hole) has nowhere to go: no numbers (user, 11-17: they appeared on
+    -- the ring past the finish)
+    if marble_index == last_goal_index then return end
+
     local numbers_arranged = 0
     local i = 1
     local potential_index
     local tops = marblesOnSpots(non_start_points)
+    local pass_from = nil                                   -- the number that lands in finish hole 1, if it does
+
+    local function place(obj, idx)
+        hoverSizeUp(obj)
+        local spot = hoverSpotPosition(non_start_points, idx, tops)
+        obj.setPosition(spot)
+        obj.setRotation({HOVER_NUMBER_ROTATION,
+            hoverYaw(player_color, spot, alpha * ((view_team or team_number) - 1), non_start_points), 0})
+        obj.setInvisibleTo(player_colors)
+        obj.highlightOn(marble_color)
+    end
 
     while numbers_arranged < 13 do
 
@@ -92,20 +108,74 @@ function arrangeHoverNumbers(player_color, marble_index, team_number, marble_col
         if potential_index % 23 == 4 and potential_index ~= first_goal_index then
             i = i + 5
         else
-            hoverSizeUp(hover_numbers[numbers_arranged+1])
-            local spot = hoverSpotPosition(non_start_points, potential_index, tops)
-            hover_numbers[numbers_arranged+1].setPosition(spot)
-            hover_numbers[numbers_arranged+1].setRotation({HOVER_NUMBER_ROTATION,
-                hoverYaw(player_color, spot, alpha * ((view_team or team_number) - 1), non_start_points), 0})
-            hover_numbers[numbers_arranged+1].setInvisibleTo(player_colors)
-            hover_numbers[numbers_arranged+1].highlightOn(marble_color)
+            if potential_index == first_goal_index then pass_from = numbers_arranged + 1 end
+            place(hover_numbers[numbers_arranged+1], potential_index)
             hover_numbers[numbers_arranged+1].setColorTint(HOVER_NUMBER_COLOR)
             numbers_arranged = numbers_arranged + 1
             i = i + 1
 
-            if potential_index == last_goal_index then return end
+            if potential_index == last_goal_index then break end
         end
     end
+
+    -- About to enter (user, 11-17): the numbers for running PAST the finish too, on the ring after the entrance, in
+    -- a second colour. They are a second set of pieces, spawned the first time they're needed.
+    if pass_from then
+        local pass = hoverPassObjects(player_color)
+        if not pass then return end
+        local idx = first_goal_index - 1                        -- the entrance cell
+        for v = pass_from, 13 do
+            repeat idx = (idx % #non_start_points) + 1 until not (((idx - 1) % 23) + 1 >= 4 and ((idx - 1) % 23) + 1 <= 8)
+            place(pass[v], idx)
+            pass[v].setColorTint(HOVER_PASS_TINT)
+        end
+    end
+end
+
+-- the second set of numbers 1-13 (running past the finish), per player, spawned once and found again after a reload
+HOVER_PASS_TINT = { r = 0.55, g = 0.8, b = 1 }
+HOVER_PASS = HOVER_PASS or {}                -- [player colour] = { [n] = object }
+HOVER_PASS_SPAWNING = HOVER_PASS_SPAWNING or {}
+local function hoverPassName(color, n) return "HoverPass_" .. color .. "_" .. n end
+function hoverPassObjects(color)
+    local set = HOVER_PASS[color]
+    if set then
+        local ok = true
+        for n = 1, 13 do if not set[n] or set[n].isDestroyed() then ok = false end end
+        if ok then return set end
+    end
+    set = {}
+    for _, o in ipairs(getAllObjects()) do
+        local c, n = tostring(o.getName()):match("^HoverPass_(%a+)_(%d+)$")
+        if c == color then set[tonumber(n)] = o end
+    end
+    local have = 0
+    for n = 1, 13 do if set[n] then have = have + 1 end end
+    HOVER_PASS[color] = set
+    if have == 13 then return set end
+    if not HOVER_PASS_SPAWNING[color] then
+        HOVER_PASS_SPAWNING[color] = true
+        local left = 13 - have
+        for n = 1, 13 do
+            if not set[n] then
+                spawnObjectJSON({
+                    json = hoverNumberJSON(HOVER_NUMBER_MESHES[n], ""),
+                    position = { 4 + 0.5 * n, 14, 0 },
+                    rotation = { 0, 0, 0 },
+                    callback_function = function(o)
+                        o.setName(hoverPassName(color, n))
+                        o.setInvisibleTo(PLAYER_COLORS[Global.getVar("num_players")])
+                        o.setLock(true)
+                        o.interactable = false
+                        set[n] = o
+                        left = left - 1
+                        if left == 0 then HOVER_PASS_SPAWNING[color] = false end
+                    end
+                })
+            end
+        end
+    end
+    return nil                                   -- appear from the next hover on
 end
 
 ------------------------------------------------------------------------
@@ -186,6 +256,12 @@ function hideHoverNumbers(player_color)
     for i = 1,13 do
         hover_numbers[i].setInvisibleTo(player_colors)
         hover_numbers[i].setPosition({4+.5*i, 10, 0})
+    end
+    for n, o in pairs(HOVER_PASS[player_color] or {}) do
+        if o and not o.isDestroyed() then
+            o.setInvisibleTo(player_colors)
+            o.setPosition({ 4 + 0.5 * n, 14, 0 })
+        end
     end
     local m8 = HOVER_MINUS8[player_color]
     if m8 and not m8.isDestroyed() then

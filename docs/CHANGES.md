@@ -84,6 +84,28 @@ see the last section, and [ARCHITECTURE.md](ARCHITECTURE.md) for the new layout.
 - **Reloads:** a game in progress survives a reload. Stats, bot settings, marble styles and in-person seats are
   saved.
 
+## Added after the pull request was opened (2026-11-17)
+
+- **Settings menu:** a gear at the top right (host only) for bot level, animation speed, hybrid mode, what new
+  players start with (easy play, click to play) and the turn timer. Saved with the game.
+- **How to play:** a **?** button for everyone, with pages on easy play, click to play and the hover numbers. Room for
+  screenshots (`assets/tutorial/`).
+- **Turn timer:** the player's screen edge glows in their colour on their turn, flashes after 10 s, ticks after
+  15 s and goes all out after 30 s. Clicks go through it; it stops when a card is played.
+- **Your own name:** a name field in the colour picker; used everywhere instead of the Steam name.
+- **Hands off:** only the host can pick up a card from another player's hand or play zone.
+- **Chat log:** moves are described by owner and distance ("Blue marble 2 into the finish + Alice's marble 5 (7
+  split 2 + 5)") instead of marble numbers that read like the card played.
+- **Easy play:** click a picked marble again to un-pick it.
+- **Hover numbers:** a marble all the way in shows none (they used to appear on the ring); near its finish, light-blue
+  numbers also show where it lands running past the entrance.
+- **Drawing:** a drawn card stays face down until it's in the hand (TTS's deal flipped it on the way).
+- **Click to play:** a card that bounces off the play zone, or a non-host player's card that jumps back into the hand,
+  is put back on the zone.
+- **Bot:** tidying a teammate's finish counts for less than entering its own (playtest flag); once the next player
+  has nothing left in start, a forward marble guarding another enemy's exit earns a small bonus. A flag waiting in
+  the save no longer collects later bot moves.
+
 ## For developers
 
 ### Layout

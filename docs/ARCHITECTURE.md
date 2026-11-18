@@ -98,6 +98,7 @@ src/
     stats.lua            counting the post-game stats and awards
     undo.lua             snapshots and Undo / Pause / Resume
     save.lua             what's kept in the save
+    turn_timer.lua       the glowing / flashing screen edge on a person's turn, and its ticks
   play/
     easy_play.lua        glowing choices, click to move
     click_to_play.lua    click a card to play it
@@ -108,9 +109,12 @@ src/
     color_picker.lua     the colour picker, marble styles and effects
     turn_ui.lua          banner, END TURN, splash, Turn Button label
     stats_panel.lua      stats screen and panel buttons
+    settings.lua         the host's settings menu (gear, top right); the UI's images (UI.setCustomAssets)
+    tutorial.lua         "How to play" pages (?, top right)
   host/
     commands.lua         host chat commands (!help lists them)
     game_log.lua         the game log sent to tools/flag_server.py
+assets/                  images and sounds the game loads from GitHub (gear, tutorial screenshots, timer ticks)
 tests/                   test suites + a mock of the TTS API (run_all.sh)
 tools/                   push_to_tts.sh, flag server, analysis tools
 docs/                    this file, host commands, the bot's rules and tuning history, change list
@@ -141,7 +145,10 @@ marble is matched to the nearest board point.
 | `EASY` | play/easy_play.lua | who has easy play / click to play on, the current choice in progress |
 | `IRL` | play/hybrid.lua | hybrid mode, in-person seats and their names (saved) |
 | `MARBLE_STYLE` | ui/color_picker.lua | each seat's picked colour, see-through, effect (saved) |
-| `UI_STATE` | ui/ui.lua | which overlays are open (picker, stats) |
+| `UI_STATE` | ui/ui.lua | which overlays are open (picker, stats, settings) |
+| `SETTINGS` | ui/settings.lua | the host's menu: defaults for new players, turn timer, sounds (saved) |
+| `TURN_TIMER` | game/turn_timer.lua | the turn timer in progress |
+| `PLAYER_NAMES` | ui/names.lua | names players picked for themselves (saved) |
 | `GLOG` | host/game_log.lua | the game log buffer |
 
 The board itself is in Global tables set by the setup scripts: `marbles_by_player`, `non_start_points`,

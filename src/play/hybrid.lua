@@ -106,7 +106,7 @@ end
 function hybridSeatTaken(color)
     if not (color and IRL.seats[color] and Player[color] and Player[color].seated) then return end
     IRL.seats[color] = nil
-    printToAll(Player[color].steam_name .. " took over " .. irlLabel(color) .. "'s seat")
+    printToAll((personName(color) or "A player") .. " took over " .. irlLabel(color) .. "'s seat")
     if TURN_STATE.active and seatColors()[TURN_STATE.seat] == color and not TURN_STATE.busy then
         turnBegin(TURN_STATE.seat)                          -- their turn: start it for them
     end

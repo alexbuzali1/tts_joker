@@ -269,6 +269,19 @@ function JB.gapMoveCharge(S, act, seat, gaps)
     return cost
 end
 
+-- A teammate's finish (a 7 split) is worth less to tidy than the bot's own (user, flag 2026-11-17: Green split a 7 to
+-- move teammate Orange's finish marble 3 -> 4 instead of entering its own 4th marble: "the bot should have moved
+-- itself in there, it was more impactful than helping me"). The teammate can tidy it with a small card on their own
+-- turn; it's only urgent when one of their marbles is about to come in (within JB.THREAT_RANGE of the entrance).
+JB.TEAMMATE_TIDY_SHARE = 0.3
+function JB.tidyShare(S, act, seat)
+    if not act.seat or seat == act.seat then return 1 end
+    for _, m in ipairs(S.marbles) do
+        if m.seat == seat and m.kind == 'R' and JB.distToEntrance(S, seat, m.p) <= JB.THREAT_RANGE then return 1 end
+    end
+    return JB.TEAMMATE_TIDY_SHARE
+end
+
 function JB.cleanHouseBonus(S, act)
     if not act.state or not act.steps then return 0 end
     local bonus, done = 0, {}
@@ -277,7 +290,7 @@ function JB.cleanHouseBonus(S, act)
         if not done[seat] then
             done[seat] = true
             local fixed = JB.untidyCells(S, seat) - JB.untidyCells(act.state, seat)
-            if fixed > 0 then bonus = bonus + JB.CLEAN_HOUSE_BONUS * fixed
+            if fixed > 0 then bonus = bonus + JB.CLEAN_HOUSE_BONUS * fixed * JB.tidyShare(S, act, seat)
             -- making a mess costs too (flags 50/51: a 7 entering to cell 2 with cell 3 empty "didn't even move it all
             -- the way in"); at most 2 gaps count, so entering an empty finish shallow is still better than passing it
             -- (7s only: a split can choose how deep to go; with any other card the entry is fixed, and the
@@ -563,7 +576,7 @@ function JB.finishPackBonus(S, act)
     local b = 0
     for _, st in ipairs(act.steps) do
         local m = S.marbles[st.mi]
-        if m.kind == 'G' and st.kind == 'G' and st.p > m.p then b = b + JB.FINISH_PACK_BONUS * (st.p - m.p) end
+        if m.kind == 'G' and st.kind == 'G' and st.p > m.p then b = b + JB.FINISH_PACK_BONUS * (st.p - m.p) * JB.tidyShare(S, act, m.seat) end
     end
     return b
 end

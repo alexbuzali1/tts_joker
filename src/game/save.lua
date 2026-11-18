@@ -6,6 +6,8 @@
 --   bot     the host's bot settings: difficulty, think time, animation speed, all-bot mode
 --   styles  the marble colours / effects players picked (ui/color_picker.lua)
 --   irl     hybrid mode: in-person seats and their names (play/hybrid.lua)
+--   names   names players picked for themselves (ui/names.lua)
+--   settings the host's settings menu (ui/settings.lua): defaults for joining players, turn timer
 
 -- Bump this when the bot settings' defaults change: settings saved by an older version are then ignored, so an
 -- old save doesn't bring back old defaults.
@@ -20,6 +22,8 @@ function saveGameState()
                 speed = BOT_STATE and BOT_STATE.speed_index, v = BOT_SETTINGS_VERSION },
         styles = MARBLE_STYLE and next(MARBLE_STYLE) and MARBLE_STYLE or nil,
         irl = { mode = IRL.mode, seats = IRL.seats, names = IRL.names },
+        names = PLAYER_NAMES and next(PLAYER_NAMES) and PLAYER_NAMES or nil,
+        settings = SETTINGS,
     })
 end
 
@@ -33,6 +37,8 @@ function loadGameState(saved)
         GAME_STATS.snapshot = nil
     end
     if type(data.flags) == "table" then BOT_FLAGS = data.flags end
+    if type(data.names) == "table" then PLAYER_NAMES = data.names end
+    if type(data.settings) == "table" and settingsLoad then settingsLoad(data.settings) end
     if type(data.irl) == "table" then
         IRL.mode = data.irl.mode == true
         IRL.seats = type(data.irl.seats) == "table" and data.irl.seats or {}

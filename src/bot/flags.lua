@@ -48,12 +48,15 @@ function flagBadMove(player)
     end
     local now = {}
     pcall(function() now = boardList(botReadState()) end)
+    -- a copy: the history table keeps growing, and a flag waiting in the save picked up later bot moves too (11-17)
+    local recent = {}
+    for i, m in ipairs(BOT_STATE.history or {}) do recent[i] = m end
     local flag = {
         flagged_at = os.date and os.date("%Y-%m-%d %H:%M:%S") or "",
         by = player.color, note = FLAG_NOTES[player.color] or "",
         num_players = N, game_turn = GAME_STATS and GAME_STATS.turn or 0,
         seats = seats, board_now = now,
-        recent_bot_moves = BOT_STATE.history,       -- oldest first; the last one is the most recent bot move
+        recent_bot_moves = recent,                  -- oldest first; the last one is the most recent bot move
     }
     local body = JSON.encode(flag)
     FLAG_NOTES[player.color] = ""

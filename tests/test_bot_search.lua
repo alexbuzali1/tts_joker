@@ -974,5 +974,45 @@ do
     check(a.card == '$' and tgt == 25, "flag 47: the Joker lands on seat 5's far marble, keeping the parked one (" .. a.text .. ")")
 end
 
+print("== flag 2026-11-17 (4 players): enter its own finish rather than tidy a teammate's")
+do
+    -- Green (seat 3) has 3 home and a marble on its own entrance; teammate seat 1 has finish 5, 3, 2 with no marble
+    -- near its entrance. Green split a 7 to move seat 1's finish marble 3 -> 4: "the bot should have moved itself in
+    -- there, it was more impactful than helping me". The teammate can tidy that on their own turn.
+    local board = { 'G5','G3','R56','R28','G2', 'G2','G4','G5','G3','S0', 'G5','G4','R39','G3','R30', 'G5','G3','G4','R54','R6' }
+    local list = {}
+    for i, b in ipairs(board) do list[i] = { seat = (i - 1) // 5 + 1, kind = b:sub(1, 1), p = tonumber(b:sub(2)) } end
+    local S = JB.newState(4, list)
+    local a = JS.choose(S, 3, { '5', '5', '$', '4', '$', '7' }, { level = 9, time_limit = 1, rng = function() return 0.5 end })
+    local entered = false
+    for _, st in ipairs(a.steps or {}) do if st.mi == 13 and st.kind == 'G' then entered = true end end
+    check(entered, "flag 2026-11-17: Green enters its own finish (" .. tostring(a.text) .. ")")
+end
+
+print("== 11-17: no defending a player with nothing left in start; guard another enemy instead")
+do
+    local function st(board)
+        local list = {}
+        for i, b in ipairs(board) do list[i] = { seat = (i - 1) // 5 + 1, kind = b:sub(1, 1), p = tonumber(b:sub(2)) } end
+        return JB.newState(4, list)
+    end
+    JB.STRATEGY = 1
+    -- seat 1: a marble 3 past its exit (8 -> 11) and one far round. Seat 2 (next) still has marbles in start: the
+    -- rear marble is the defender, so moving it forward 2 gains nothing on the board
+    local before = { 'R11','R40','S0','S0','S0', 'S0','S0','R30','G5','G4', 'G5','G4','G3','G2','G1', 'S0','R50','G5','G4','G3' }
+    local after  = { 'R13','R40','S0','S0','S0', 'S0','S0','R30','G5','G4', 'G5','G4','G3','G2','G1', 'S0','R50','G5','G4','G3' }
+    local gain = JB.evaluate(st(after), 1) - JB.evaluate(st(before), 1)
+    check(math.abs(gain) < 1, string.format("next player still to come out: the defender gets no credit for moving (%.1f)", gain))
+    -- seat 2 has nothing left in start: the same marble is a runner and moving it is progress
+    before[6], before[7], after[6], after[7] = 'G1', 'G2', 'G1', 'G2'
+    gain = JB.evaluate(st(after), 1) - JB.evaluate(st(before), 1)
+    check(gain > 1, string.format("next player all out: the old defender is a runner (%.1f)", gain))
+    -- a marble 8-18 behind seat 4's exit (62 - 12 = 50 is taken by seat 4; use 48) guards seat 4, which has one in start
+    local guard   = { 'R11','R48','S0','S0','S0', 'G1','G2','R30','G5','G4', 'G5','G4','G3','G2','G1', 'S0','R20','G5','G4','G3' }
+    local noguard = { 'R11','R30','S0','S0','S0', 'G1','G2','R31','G5','G4', 'G5','G4','G3','G2','G1', 'S0','R20','G5','G4','G3' }
+    check(JB.foreignPost(st(guard), 1, { [1] = 3, [4] = 1 }) and not JB.foreignPost(st(noguard), 1, { [1] = 3, [4] = 1 }),
+          "a marble 8-18 behind another enemy's exit guards it once the next player is all out")
+end
+
 print(string.format("\npassed %d, failed %d", passed, failed))
 os.exit(failed == 0 and 0 or 1)

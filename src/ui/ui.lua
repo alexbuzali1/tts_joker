@@ -9,6 +9,9 @@
 --   easy play              play/easy_play.lua      toggles bottom right, prompt / chooser bottom centre
 --   in-person card bar     play/hybrid.lua         the host's, on in-person seats' turns
 --   stats screen           ui/stats_panel.lua      after the game (or !stats)
+--   settings gear + menu   ui/settings.lua         top right, the host's
+--   "?" + how to play      ui/tutorial.lua         top right, everyone
+--   turn timer border      game/turn_timer.lua     the edge of the player's screen on their turn
 
 UI_STATE = UI_STATE or { picker = false, stats = false }
 
@@ -20,6 +23,8 @@ function refreshGameUI()
     xml = xml .. easyUiXml()
     xml = xml .. irlUiXml()
     if UI_STATE.stats then xml = xml .. statsPanelXml() end
+    xml = xml .. turnTimerXml()                       -- the turn timer's border (game/turn_timer.lua), under the menus
+    xml = xml .. settingsGearXml() .. tutorialButtonXml() .. settingsXml() .. tutorialXml()
     UI.setXml(xml)
 end
 

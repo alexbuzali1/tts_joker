@@ -8,9 +8,7 @@
 local function statsName(color)
     if botIsBot(color) then return botName(color) end
     if irlIsSeat(color) then return (IRL.names and IRL.names[color]) or marbleColorName(color) end   -- hybrid
-    local p = Player[color]
-    if p and p.steam_name and p.steam_name ~= "" then return p.steam_name end
-    return marbleColorName(color)
+    return personName(color) or marbleColorName(color)
 end
 
 local NAME_W, CARD_W, NUM_W, AWARD_W = 130, 30, 58, 260

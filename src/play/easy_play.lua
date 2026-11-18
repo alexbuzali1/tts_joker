@@ -55,8 +55,14 @@ local function outcomeKey(a)
     return table.concat(t, ",")
 end
 
--- "7: seat1#1 +2 and seat3#4 +5 (bonks seat 2)" -> "Blue 1 +2 and Green 4 +5 (bonks Red)"
+-- a move in words for the choice buttons (ui/names.lua moveDescription); the old wording below is a fallback
 function easyDescribe(a)
+    local s = EASY.session
+    local S0 = s and (s.S0 or s.S)
+    if S0 and moveDescription then
+        local ok, t = pcall(moveDescription, S0, a, false)
+        if ok and t and t ~= "" then return t end
+    end
     local cols = seatColors()
     local function nm(s) local c = cols[tonumber(s)]; return c and marbleColorName(c) or ("seat " .. s) end
     local t = tostring(a.text or "")
@@ -280,6 +286,8 @@ local function execute(a)
     local rep, clicked = a.steps[1].mi, s.clicked[1]
     if clicked and clicked ~= rep and objs[clicked] then objs[rep], objs[clicked] = objs[clicked], objs[rep] end
     local gen = TURN_STATE and TURN_STATE.gen
+    -- the chat log says what was played (user: 7 splits too)
+    pcall(function() printToAll(playerLabel(s.color) .. " moves " .. moveDescription(s.S0 or s.S, a, true)) end)
     if s.leg1 then a = { card = a.card, steps = { a.steps[2] }, state = a.state, bumps = a.bumps } end   -- part 1 is done
     botRunMove(a, objs, function()
         if EASY.session == s then EASY.session = nil end
@@ -395,7 +403,7 @@ function easyStart(color, token, guid, ctrl)
     for _, a in ipairs(acts) do a.picks = actionPicks(S, a); a.key = outcomeKey(a) end
     EASY.n = EASY.n + 1
     EASY.session = { color = color, ctrl = ctrl, seat = seat, guid = guid, card = token, acts = acts, picks = {},
-                     clicked = {}, S = S, objs = objs, baseId = EASY.n, glowObjs = {}, markObjs = {} }
+                     clicked = {}, S = S, S0 = S, objs = objs, baseId = EASY.n, glowObjs = {}, markObjs = {} }
     easyNextStep()
     return true
 end
@@ -428,6 +436,16 @@ function easyOnPickUp(player, targets)
         for i, o in pairs(s.objs) do if o.getGUID() == guid then mi = i end end
         if mi then
             v = marbleValue(s.S, mi)
+            -- clicking the marble you just picked again un-picks it (user, 11-17), as well as Cancel. Not the first
+            -- part of a 7 once it has been played.
+            local k = #s.picks
+            if k > (s.leg1 and 2 or 0) and s.picks[k] == v and s.clicked[k] and not (s.next and s.next[v]) then
+                s.picks[k], s.clicked[k] = nil, nil
+                s.choices = nil
+                glowOff(s)
+                easyNextStep()
+                return true
+            end
             -- choosing a spot: clicking the marble sitting on it picks that spot
             if not (s.next and s.next[v]) then v = marbleSpot(s.S, mi) or v end
         end
@@ -453,6 +471,8 @@ end
 function easyToggle(player)
     if not player or not player.color then return end
     EASY.on[player.color] = not EASY.on[player.color]
+    EASY.chosen = EASY.chosen or {}
+    EASY.chosen[player.color] = true                     -- their own choice beats the host's default (ui/settings.lua)
     if not EASY.on[player.color] and EASY.session and EASY.session.color == player.color then easyCancel() end
     broadcastToColor(EASY.on[player.color] and "Easy play ON: play a card, then click a glowing marble"
                      or "Easy play OFF: move marbles by hand", player.color, { 0.6, 1, 0.6 })
