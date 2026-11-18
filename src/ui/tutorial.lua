@@ -26,7 +26,8 @@ TUTORIAL = TUTORIAL or {}            -- [player colour] = page number while open
 TUTORIAL_HAVE_IMAGES = false
 
 function tutorialButtonXml()
-    return '<Button id="tutorialBtn" onClick="tutorialToggle" rectAlignment="UpperRight" offsetXY="-78 -64" width="54" height="54" '
+    return '<Button id="tutorialBtn" onClick="tutorialToggle" rectAlignment="UpperRight" offsetXY="'
+        .. (-(UI_TOP_RIGHT_X or 230) - 62) .. ' ' .. (-(UI_TOP_Y or 6)) .. '" width="54" height="54" '
         .. 'fontSize="30" fontStyle="Bold" textColor="#FFFFFF" color="#000000B0" tooltip="How to play" tooltipPosition="Left">?</Button>'
 end
 

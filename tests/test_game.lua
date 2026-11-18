@@ -1482,6 +1482,22 @@ do
     check(M.chat[#M.chat]:find("Unknown colour", 1, true) ~= nil, "an unknown colour lists the names")
     check(onChat("!color 2 red", { color = "Orange", host = false }) ~= false and marbleColorName("Green") == "Cyan", "not for a guest")
 
+    -- !name: the host names a bot, an in-person seat or a person
+    startTurn(1)
+    BOT_STATE.seats = BOT_STATE.seats or {}
+    BOT_STATE.seats.Green = true
+    onChat("!name 2 Robo", hostP)
+    check(botIsBot("Green") and botName("Green") == "Robo (BOT)" and playerLabel("Green"):find("Robo (BOT)", 1, true), "!name names a bot: " .. botName("Green"))
+    check(botSeatFromName("robo") == "Green", "... and the name works as a seat")
+    onChat("!name robo", hostP)
+    check(botName("Green"):find("^BOT %(") ~= nil, "no name: back to BOT (colour)")
+    onChat("!name 1 Henry", hostP)
+    check(playerLabel("Orange") == "Henry", "... a person too")
+    IRL.seats.Purple = true
+    onChat("!name 3 Pat", hostP)
+    check(irlLabel("Purple") == "Pat (in person)", "... and an in-person seat")
+    IRL.seats.Purple = nil; IRL.names.Purple = nil; PLAYER_NAMES.Orange = nil
+
     -- the chat log: a 7 split in words
     startTurn(1)
     put("White", 1, 'R', 10, 1)

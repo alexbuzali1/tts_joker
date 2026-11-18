@@ -23,6 +23,7 @@ HOST_COMMANDS = {
             "  !hybridseat <seat> [name]   a bot's (or empty) seat is played in person from now on (e.g. !hybridseat 1 Kim)\n" ..
             "  !hybridname <seat> <name>   name an in-person seat (e.g. !hybridname 3 Pat)\n" ..
             "  !picker on|off       show the colour pickers (your picker also colours/names in-person seats)\n" ..
+            "  !name <seat> [name]  name a bot, in-person seat or player (no name = back to the default), e.g. !name 2 Robo\n" ..
             "  !color <seat> <colour> [solid|see] [plain|pulse|twinkle]   recolour anyone's marbles (bot, person or in person; !colour too)\n" ..
             "                       colour = a name (red, dark green, pink...) or #RRGGBB, e.g. !color 2 pink, !color blue #FF8800 see\n" ..
             "Table:\n" ..
@@ -145,6 +146,7 @@ HOST_COMMANDS = {
         refreshGameUI()
         hostReply("Colour picker " .. (UI_STATE.picker and "shown (everyone gets theirs; yours also does the in-person seats)" or "hidden"))
     end,
+    name = function(a) hostSetName(a) end,
     color = function(a) hostSetColor(a) end,
     colour = function(a) hostSetColor(a) end,
     hybridname = function(a)
@@ -278,7 +280,7 @@ function hostChatCommand(message, player)
         if ok and cmd and HOST_COMMANDS[cmd:lower()] then
             local name = cmd:lower()
             local arg = rest ~= "" and rest or nil
-            if name ~= "flag" and name ~= "hybridname" and name ~= "irlname" and name ~= "hybridseat" and arg then arg = arg:lower() end
+            if name ~= "flag" and name ~= "hybridname" and name ~= "irlname" and name ~= "hybridseat" and name ~= "name" and arg then arg = arg:lower() end
             local fine, err = pcall(HOST_COMMANDS[name], arg, player)
             if not fine then hostReply("!" .. name .. " failed: " .. tostring(err)) end
             return true                                    -- hidden from everyone
@@ -334,4 +336,27 @@ function hostSetColor(a)
     turnRefreshNames()
     hostReply(old .. "'s marbles are now " .. (rgb and marbleColorName(color) or old)
         .. (st.see and ", see-through" or "") .. ((st.fx and st.fx ~= "plain") and (", " .. st.fx) or ""))
+end
+
+-- !name <seat> [name] (user, 11-18): the host names any seat. A bot becomes "<name> (BOT)", an in-person seat
+-- "<name> (in person)", a person is shown by that name (like the name field in their colour picker). An empty seat
+-- keeps it for whichever it becomes. No name: back to the default.
+function hostSetName(a)
+    local usage = "!name <seat> [name]   e.g. !name 2 Robo   !name blue Pat   !name 2 (no name = default)"
+    local text = tostring(a or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    local seatText, name = text:match("^(%S+)%s+(.+)$")
+    seatText = seatText or text
+    local color = seatText ~= "" and botSeatFromName(seatText)
+    if not color then return hostReply(seatText ~= "" and ("No seat " .. seatText .. ". " .. usage) or usage) end
+    name = name and name:gsub("[%c%[%]<>]", ""):sub(1, PLAYER_NAME_MAX or 20) or nil
+    if name == "" then name = nil end
+    local p = Player[color]
+    if botIsBot(color) then BOT_NAMES[color] = name
+    elseif irlIsSeat(color) then IRL.names[color] = name
+    elseif p and p.seated then PLAYER_NAMES[color] = name and { name = name, steam = p.steam_name } or nil
+    else BOT_NAMES[color] = name; IRL.names[color] = name end
+    local label = botIsBot(color) and botName(color) or (irlIsSeat(color) and irlLabel(color)) or personName(color) or name or marbleColorName(color)
+    hostReply(marbleColorName(color) .. "'s seat: " .. label)
+    turnRefreshNames()
+    refreshGameUI()
 end

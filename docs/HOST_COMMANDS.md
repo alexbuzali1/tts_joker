@@ -177,6 +177,12 @@ On a person's turn, the edge of their screen (only theirs) glows in their marble
 - The ticks play through TTS's music player, so **everyone** hears them (TTS can't play a sound to one player). They
   replace whatever the music player was playing. Switch them off in the settings.
 
+## Naming a seat
+
+`!name <seat> [name]` names any seat: a bot shows as "Robo (BOT)", an in-person seat as "Pat (in person)", and a
+person by that name (the same as the name field in their colour picker). Give no name to go back to the default.
+`<seat>` works like `!hybridseat`, and names work as seats afterwards (`!color robo pink`). Saved with the game.
+
 ## Recolouring a seat
 
 `!color <seat> <colour> [solid|see] [plain|pulse|twinkle]` recolours any seat's marbles, a bot's, a person's or an

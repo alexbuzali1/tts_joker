@@ -371,6 +371,10 @@ function botSeatFromName(text)
     if IRL and IRL.names then
         for c, name in pairs(IRL.names) do if tostring(name):lower() == text then return c end end
     end
+    for _, c in ipairs(PLAYER_COLORS[N] or {}) do                 -- a bot's or a person's name (!name, picker)
+        local bn, pn = BOT_NAMES and BOT_NAMES[c], personName and personName(c)
+        if (bn and bn:lower() == text) or (pn and pn:lower() == text) then return c end
+    end
     for _, c in ipairs(PLAYER_COLORS[N] or {}) do if marbleColorName(c):lower() == text then return c end end
     for _, c in ipairs(PLAYER_COLORS[N] or {}) do if c:lower() == text then return c end end
     return nil

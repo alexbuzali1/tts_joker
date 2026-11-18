@@ -38,7 +38,13 @@ function marbleColorName(color)
 end
 
 
-function botName(color) return "BOT (" .. marbleColorName(color) .. ")" end
+-- The host can name a bot (!name, host/commands.lua; user 11-18): "Robo (BOT)". Saved with the game.
+BOT_NAMES = BOT_NAMES or {}            -- [seat colour] = name
+function botName(color)
+    local n = BOT_NAMES[color]
+    if n and n ~= "" then return n .. " (BOT)" end
+    return "BOT (" .. marbleColorName(color) .. ")"
+end
 
 ------------------------------------------------------------------------
 -- name colours: a bot's name is shown in the colour of its marbles

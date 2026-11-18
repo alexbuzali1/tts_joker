@@ -43,8 +43,13 @@ end
 
 local function isHost(player) return player and Player[player.color] and Player[player.color].host end
 
+-- Top of the screen, left of TTS's own player list in the top-right corner (it grows down as people join), so the
+-- names keep their space (user, 11-18 screenshot). UI_TOP_RIGHT_X = how far in from the right edge.
+UI_TOP_RIGHT_X = 230
+UI_TOP_Y = 6
 function settingsGearXml()
-    return '<Button id="settingsGear" visibility="Host" onClick="settingsToggle" rectAlignment="UpperRight" offsetXY="-16 -64" '
+    return '<Button id="settingsGear" visibility="Host" onClick="settingsToggle" rectAlignment="UpperRight" offsetXY="'
+        .. (-UI_TOP_RIGHT_X) .. ' ' .. (-UI_TOP_Y) .. '" '
         .. 'width="54" height="54" icon="gear" color="#000000B0" tooltip="Settings" tooltipPosition="Left"/>'
 end
 
@@ -71,7 +76,7 @@ function settingsXml()
     local sp = {}
     for i, s in ipairs(BOT_SPEEDS) do sp[#sp + 1] = { id = "set_speed_" .. i, text = s.name, on = BOT_STATE.speed_index == i } end
     local x = {}
-    x[#x + 1] = '<Panel id="settingsPanel" visibility="Host" rectAlignment="UpperRight" offsetXY="-16 -126" width="520" height="520" color="#000000E0" padding="14 14 10 10">'
+    x[#x + 1] = '<Panel id="settingsPanel" visibility="Host" rectAlignment="UpperRight" offsetXY="' .. (-UI_TOP_RIGHT_X) .. ' ' .. (-UI_TOP_Y - 62) .. '" width="520" height="520" color="#000000E0" padding="14 14 10 10">'
         .. '<VerticalLayout spacing="7" childForceExpandHeight="false">'
         .. '<HorizontalLayout preferredHeight="36"><Text fontSize="24" fontStyle="Bold" color="#FFE066" alignment="MiddleLeft">Settings</Text>'
         .. '<Button id="set_close" onClick="settingsClick" fontSize="16" preferredWidth="90" flexibleWidth="0">Close</Button></HorizontalLayout>'
