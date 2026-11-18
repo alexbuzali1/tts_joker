@@ -22,7 +22,7 @@ end
 function turnUiXml()
     if not TURN_UI.text then return "" end
     local xml = string.format([[
-<Panel id="turnBanner" rectAlignment="UpperCenter" offsetXY="0 -36" width="620" height="70" color="#000000D0">
+<Panel id="turnBanner" rectAlignment="UpperCenter" offsetXY="0 -41" width="620" height="70" color="#000000D0">
   <Text id="turnBannerText" fontSize="40" fontStyle="Bold" color="%s" outline="#000000" outlineSize="2 2" text="%s"/>
 </Panel>]], TURN_UI.hex, xmlEscape(TURN_UI.text))
     if TURN_UI.human and TURN_UI.color and not (EASY and EASY.on[TURN_UI.color]) then   -- easy play: the turn ends by itself

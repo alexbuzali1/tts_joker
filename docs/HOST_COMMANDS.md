@@ -176,6 +176,14 @@ On a person's turn, the edge of their screen (only theirs) glows in their marble
 - The ticks play through TTS's music player, so **everyone** hears them (TTS can't play a sound to one player). They
   replace whatever the music player was playing. Switch them off in the settings.
 
+## Recolouring a seat
+
+`!color <seat> <colour> [solid|see] [plain|pulse|twinkle]` recolours any seat's marbles, a bot's, a person's or an
+in-person seat's, as if they'd used the colour picker. `<seat>` works like `!hybridseat` (a number, you are 0 then
+clockwise; a marble colour; or a name). `<colour>` is a name (red, orange, yellow, green, dark green, cyan, blue, navy,
+purple, magenta, pink, brown, white, grey, black) or `#RRGGBB`. Leave the colour out to change only see-through or the
+effect. Examples: `!color 2 pink`, `!color blue #FF8800 see`, `!color evan pulse`. `!colour` works too.
+
 ## Marble colour picker
 
 Before the game starts, each player gets their own picker (only they see it):

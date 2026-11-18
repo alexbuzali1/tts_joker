@@ -23,6 +23,8 @@ HOST_COMMANDS = {
             "  !hybridseat <seat> [name]   a bot's (or empty) seat is played in person from now on (e.g. !hybridseat 1 Kim)\n" ..
             "  !hybridname <seat> <name>   name an in-person seat (e.g. !hybridname 3 Pat)\n" ..
             "  !picker on|off       show the colour pickers (your picker also colours/names in-person seats)\n" ..
+            "  !color <seat> <colour> [solid|see] [plain|pulse|twinkle]   recolour anyone's marbles (bot, person or in person; !colour too)\n" ..
+            "                       colour = a name (red, dark green, pink...) or #RRGGBB, e.g. !color 2 pink, !color blue #FF8800 see\n" ..
             "Table:\n" ..
             "  !freemove on|off     anyone can move marbles at any time (default off)\n" ..
             "Fixing problems:\n" ..
@@ -143,6 +145,8 @@ HOST_COMMANDS = {
         refreshGameUI()
         hostReply("Colour picker " .. (UI_STATE.picker and "shown (everyone gets theirs; yours also does the in-person seats)" or "hidden"))
     end,
+    color = function(a) hostSetColor(a) end,
+    colour = function(a) hostSetColor(a) end,
     hybridname = function(a)
         local col, name = tostring(a or ""):match("^(%S+)%s+(.+)$")
         local color = col and botSeatFromName(col)
@@ -284,3 +288,50 @@ function hostChatCommand(message, player)
     return false
 end
 
+
+-- !color <seat> <colour> [solid|see] [plain|pulse|twinkle] (user, 11-18): the host recolours any seat's marbles -
+-- a bot's, a person's or an in-person seat's - as if that seat had used the colour picker (ui/color_picker.lua).
+-- <colour> = one of the colour names (BOT_COLOR_NAMES in ui/names.lua: red, dark green, navy, pink...) or #RRGGBB.
+HOST_COLOR_FX = { plain = true, pulse = true, twinkle = true }
+function hostSetColor(a)
+    local usage = "!color <seat> <colour> [solid|see] [plain|pulse|twinkle]   e.g. !color 2 pink   !color blue #FF8800 see"
+    local seatText, rest = tostring(a or ""):match("^(%S+)%s+(.+)$")
+    local color = seatText and botSeatFromName(seatText)
+    if not color then return hostReply(seatText and ("No seat " .. seatText .. ". " .. usage) or usage) end
+    local see, fx, words = nil, nil, {}
+    for w in rest:lower():gmatch("%S+") do
+        if w == "see" or w == "see-through" or w == "seethrough" then see = true
+        elseif w == "solid" then see = false
+        elseif HOST_COLOR_FX[w] then fx = w
+        else words[#words + 1] = w end
+    end
+    local want = table.concat(words, " ")
+    local rgb
+    local hx = want:match("^#?(%x%x%x%x%x%x)$")
+    if hx then
+        rgb = { r = tonumber(hx:sub(1, 2), 16) / 255, g = tonumber(hx:sub(3, 4), 16) / 255, b = tonumber(hx:sub(5, 6), 16) / 255 }
+    else
+        for _, e in ipairs(BOT_COLOR_NAMES) do
+            if e[1]:lower() == want then rgb = { r = e[2], g = e[3], b = e[4] } end
+        end
+    end
+    if not rgb and want ~= "" then
+        local names = {}
+        for _, e in ipairs(BOT_COLOR_NAMES) do names[#names + 1] = e[1]:lower() end
+        return hostReply("Unknown colour '" .. want .. "'. Use #RRGGBB or one of: " .. table.concat(names, ", "))
+    end
+    if not (Global.getTable("marbles_by_player") or {})[color] then return hostReply("That seat has no marbles yet") end
+    local old = marbleColorName(color)
+    local st = MARBLE_STYLE[color] or rgbStyle(marbleColorOf(color))
+    if rgb then
+        local ns = rgbStyle(rgb)
+        st.h, st.s, st.v = ns.h, ns.s, ns.v
+    end
+    if see ~= nil then st.see = see end
+    if fx then st.fx = fx end
+    MARBLE_STYLE[color] = st
+    marbleApplyStyle(color)
+    turnRefreshNames()
+    hostReply(old .. "'s marbles are now " .. (rgb and marbleColorName(color) or old)
+        .. (st.see and ", see-through" or "") .. ((st.fx and st.fx ~= "plain") and (", " .. st.fx) or ""))
+end

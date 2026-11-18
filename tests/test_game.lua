@@ -1465,6 +1465,18 @@ do
     local fl = BOT_FLAGS[#BOT_FLAGS]
     check(fl and #fl.recent_bot_moves == 2, "a waiting flag keeps the bot moves up to when it was made (" .. tostring(fl and #fl.recent_bot_moves) .. ")")
 
+    -- !color: the host recolours any seat
+    startTurn(1)
+    local hostP = { color = "White", host = true }
+    check(onChat("!color 2 pink", hostP) == false and marbleColorName("Green") == "Pink", "!color 2 pink recolours seat 2 (Green, a bot here): " .. marbleColorName("Green"))
+    onChat("!color pink #00FFFF see", hostP)
+    check(marbleColorName("Green") == "Cyan" and MARBLE_STYLE.Green.see == true, "... by its marble colour, with #RRGGBB and see-through")
+    onChat("!color 2 pulse", hostP)
+    check(MARBLE_STYLE.Green.fx == "pulse" and marbleColorName("Green") == "Cyan", "... just the effect")
+    onChat("!color 2 plaid", hostP)
+    check(M.chat[#M.chat]:find("Unknown colour", 1, true) ~= nil, "an unknown colour lists the names")
+    check(onChat("!color 2 red", { color = "Orange", host = false }) ~= false and marbleColorName("Green") == "Cyan", "not for a guest")
+
     -- the chat log: a 7 split in words
     startTurn(1)
     put("White", 1, 'R', 10, 1)
