@@ -84,22 +84,30 @@ see the last section, and [ARCHITECTURE.md](ARCHITECTURE.md) for the new layout.
 - **Reloads:** a game in progress survives a reload. Stats, bot settings, marble styles and in-person seats are
   saved.
 
-## Added after the pull request was opened (2026-11-17)
+## Added after the pull request was opened (2026-11-17 and 18)
 
 - **Settings menu:** a gear at the top right (host only) for bot level, animation speed, hybrid mode, what new
   players start with (easy play, click to play) and the turn timer. Saved with the game.
 - **How to play:** a **?** button for everyone, with pages on easy play, click to play and the hover numbers. Room for
   screenshots (`assets/tutorial/`).
-- **Turn timer:** the player's screen edge glows in their colour on their turn, flashes after 25 s, ticks after
-  40 s and goes all out after 55 s. Clicks go through it; it stops when a card is played.
+- **Turn timer:** when a turn starts, the player's screen edge flashes once with a very wide border in their colour,
+  then glows gently; it flashes after 25 s, ticks after 40 s and goes all out after 55 s. Only that player sees it,
+  clicks go through it, and it stops when a card is played.
 - **Your own name:** a name field in the colour picker; used everywhere instead of the Steam name.
+- **`!name <seat> [name]`:** the host names a bot ("Robo (BOT)"), an in-person seat or a person.
+- **`!color <seat> <colour> [solid|see] [plain|pulse|twinkle]`:** the host recolours any seat's marbles (a colour
+  name or `#RRGGBB`).
 - **Hands off:** only the host can pick up a card from another player's hand or play zone.
 - **Chat log:** moves are described by owner and distance ("Blue marble 2 into the finish + Alice's marble 5 (7
   split 2 + 5)") instead of marble numbers that read like the card played.
 - **Easy play:** click a picked marble again to un-pick it.
 - **Hover numbers:** a marble all the way in shows none (they used to appear on the ring); near its finish, light-blue
   numbers also show where it lands running past the entrance.
-- **Drawing:** a drawn card stays face down until it's in the hand (TTS's deal flipped it on the way).
+- **Drawing:** a drawn card stays face down until it's in the hand, then is flipped there (TTS's deal turned it face
+  up on the way, for everyone to see).
+- **TTS's own turn system is off:** the game runs and shows its own turns, so TTS's turn button and marker are gone.
+- **Layout:** the settings gear, the ? and the top-left panel (Pause / Undo / Deal to 6) sit along the top edge,
+  clear of TTS's player list; the turn banner is a little lower.
 - **Click to play:** a card that bounces off the play zone, or a non-host player's card that jumps back into the hand,
   is put back on the zone.
 - **Bot:** tidying a teammate's finish counts for less than entering its own (playtest flag); once the next player

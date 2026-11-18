@@ -149,6 +149,7 @@ marble is matched to the nearest board point.
 | `SETTINGS` | ui/settings.lua | the host's menu: defaults for new players, turn timer, sounds (saved) |
 | `TURN_TIMER` | game/turn_timer.lua | the turn timer in progress |
 | `PLAYER_NAMES` | ui/names.lua | names players picked for themselves (saved) |
+| `BOT_NAMES` | ui/names.lua | names the host gave bots with `!name` (saved) |
 | `GLOG` | host/game_log.lua | the game log buffer |
 
 The board itself is in Global tables set by the setup scripts: `marbles_by_player`, `non_start_points`,

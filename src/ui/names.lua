@@ -95,7 +95,7 @@ end
 -- A person can pick the name they're shown by (user, 11-17): a field in their colour picker, like the host names
 -- in-person seats. Kept per seat with the Steam name it was set for, so someone else sitting there later isn't
 -- called by it. Saved with the game (game/save.lua).
-PLAYER_NAMES = PLAYER_NAMES or {}      -- [seat colour] = { name = "Henry", steam = "Henny P" }
+PLAYER_NAMES = PLAYER_NAMES or {}      -- [seat colour] = { name = "Robin", steam = "robin_1234" }
 function personName(color)
     local p = Player[color]
     local steam = p and p.steam_name

@@ -1418,13 +1418,13 @@ do
     -- a name of your own, in the colour picker
     showColorPickers()
     check(UI.xml:find('id="pickName_Orange"', 1, true) ~= nil, "everyone's colour picker has a name field")
-    pickerName(orange, "  Henry ", "pickName_Orange")
+    pickerName(orange, "  Robin ", "pickName_Orange")
     M.pumpFor(0.5)
-    check(playerLabel("Orange") == "Henry", "the picked name is used (" .. tostring(playerLabel("Orange")) .. ")")
+    check(playerLabel("Orange") == "Robin", "the picked name is used (" .. tostring(playerLabel("Orange")) .. ")")
     PLAYER_NAMES.Orange.steam = "someone else"
     check(playerLabel("Orange") == "Human-Orange", "... not for somebody else sitting there later")
-    pickerName(orange, "Henry", "pickName_Orange")
-    check(rawSave().names.Orange.name == "Henry", "names are saved with the game")
+    pickerName(orange, "Robin", "pickName_Orange")
+    check(rawSave().names.Orange.name == "Robin", "names are saved with the game")
     pickerName(orange, "", "pickName_Orange")
     check(playerLabel("Orange") == "Human-Orange", "a blank name goes back to the Steam name")
     hideColorPickers()
@@ -1491,8 +1491,8 @@ do
     check(botSeatFromName("robo") == "Green", "... and the name works as a seat")
     onChat("!name robo", hostP)
     check(botName("Green"):find("^BOT %(") ~= nil, "no name: back to BOT (colour)")
-    onChat("!name 1 Henry", hostP)
-    check(playerLabel("Orange") == "Henry", "... a person too")
+    onChat("!name 1 Robin", hostP)
+    check(playerLabel("Orange") == "Robin", "... a person too")
     IRL.seats.Purple = true
     onChat("!name 3 Pat", hostP)
     check(irlLabel("Purple") == "Pat (in person)", "... and an in-person seat")

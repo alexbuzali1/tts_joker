@@ -107,7 +107,7 @@ Use these when a reconnect or a glitch leaves the game in a bad state.
 | `!turn <who>` | Gives the turn to that seat right now. If a bot is mid-move, it stops and gets topped up to 6 cards. `<who>` can be a marble colour (`!turn yellow`), the start of a player's name (`!turn sam`), or a TTS seat colour. Everyone is told. |
 | `!next` | Ends the current turn. A human's turn ends as if they clicked END TURN, and they draw. A bot's turn is skipped. |
 | `!pause on\|off` | Pauses the game before the next turn starts (the turn in progress carries on), then shows "Paused" on the banner and the Turn Button. `!pause off` starts that turn. Same as the Pause/Resume button. A pause doesn't survive a reload. |
-| `!resync` | Re-sends every marble's colour to all players. Also realigns TTS's own turn (who is allowed to touch pieces) with the Turn Button. |
+| `!resync` | Re-sends every marble's colour to all players, and the current turn. Also runs by itself when someone reconnects. |
 | `!undo` | Same as the Undo button (see below). |
 | `!stats` | Opens the stats screen mid-game. During a game the panel button is Undo, not Stats. |
 
@@ -189,7 +189,7 @@ person by that name (the same as the name field in their colour picker). Give no
 in-person seat's, as if they'd used the colour picker. `<seat>` works like `!hybridseat` (a number, you are 0 then
 clockwise; a marble colour; or a name). `<colour>` is a name (red, orange, yellow, green, dark green, cyan, blue, navy,
 purple, magenta, pink, brown, white, grey, black) or `#RRGGBB`. Leave the colour out to change only see-through or the
-effect. Examples: `!color 2 pink`, `!color blue #FF8800 see`, `!color evan pulse`. `!colour` works too.
+effect. Examples: `!color 2 pink`, `!color blue #FF8800 see`, `!color pat pulse`. `!colour` works too.
 
 ## Marble colour picker
 

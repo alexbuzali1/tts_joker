@@ -68,7 +68,7 @@ local function inHandArea(color, card)
 end
 
 -- A clicked card that bounced or slid off the play zone after landing (user, 11-17: "it goes to the discard
--- correctly but then jumps out"; only for swcyolo, who isn't the host: their game's late update about the card can
+-- correctly but then jumps out"; only for a player who isn't the host: their game's late update about the card can
 -- move it after the script put it on the zone) is put back on it, gently, even when it went back to the hand. Left
 -- alone once it merged into the pile, once its player picks it up again (a real take-back is always a pick-up), or
 -- once the turn moved on.
