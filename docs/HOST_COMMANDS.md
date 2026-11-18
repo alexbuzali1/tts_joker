@@ -169,8 +169,8 @@ A separate **Click to play: ON/OFF** button under Easy play. It's off by default
 
 On a person's turn, the edge of their screen (only theirs) glows in their marble colour until they play a card:
 
-- **0-10 s:** a slow, gentle glow.
-- **10 s:** it flashes. **15 s:** faster, with ticking. **30 s:** a thick border flashing between their colour and
+- **0-15 s:** a slow, gentle glow.
+- **15 s:** it flashes. **30 s:** faster, with ticking. **45 s:** a thick border flashing between their colour and
   white, "YOUR TURN" down both sides, faster ticks.
 - It never covers the table (clicks go through it), stops as soon as a card is played, and holds while paused.
 - The ticks play through TTS's music player, so **everyone** hears them (TTS can't play a sound to one player). They

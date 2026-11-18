@@ -1437,12 +1437,16 @@ do
     turnTimerStart("White", TURN_STATE.gen)
     check(TURN_TIMER and UI.xml:find('id="turnFlash" visibility="White"', 1, true) and UI.xml:find('raycastTarget="false"', 1, true)
           and wellFormed(UI.xml), "a person's turn: their screen edge glows (clicks go through)")
-    M.pumpFor(11)
-    check(TURN_TIMER.stage == 2 and plays == 0, "flashing after 10 s, no sound yet")
-    M.pumpFor(5)
-    check(TURN_TIMER.stage == 3 and plays == 1 and tostring(MusicPlayer.url):find("tick", 1, true), "faster with ticks after 15 s")
+    M.pumpFor(13)
+    check(TURN_TIMER.stage == 1, "still the slow glow at 13 s")
+    M.pumpFor(3)
+    check(TURN_TIMER.stage == 2 and plays == 0, "flashing after 15 s, no sound yet")
+    M.pumpFor(12)
+    check(TURN_TIMER.stage == 2, "still flashing (no ticks) at 28 s")
+    M.pumpFor(3)
+    check(TURN_TIMER.stage == 3 and plays == 1 and tostring(MusicPlayer.url):find("tick", 1, true), "faster with ticks after 30 s")
     M.pumpFor(15)
-    check(TURN_TIMER.stage == 4 and UI.xml:find("Y&#10;O&#10;U", 1, true) and tostring(MusicPlayer.url):find("alarm", 1, true), "all out after 30 s")
+    check(TURN_TIMER.stage == 4 and UI.xml:find("Y&#10;O&#10;U", 1, true) and tostring(MusicPlayer.url):find("alarm", 1, true), "all out after 45 s")
     GAME_STATS.card_played = true
     M.pumpFor(1)
     check(TURN_TIMER == nil, "a card played stops it")
@@ -1531,7 +1535,7 @@ do
     M.pumpFor(3)
     local got
     for _, o in ipairs(getAllObjects()) do if o.tag == "Card" and o.pos and o.pos.z == -90 and math.abs(o.pos.y - 3.2) < 0.01 then got = o end end
-    check(got and got.rot and got.rot.z == 180, "a drawn card goes to the hand face down")
+    check(got and got.flipped, "a drawn card goes to the hand face down, then is flipped in the hand")
 end
 
 print(string.format("\npassed %d, failed %d", passed, failed))

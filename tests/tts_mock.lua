@@ -129,6 +129,7 @@ function M.newObj(t)
     t.isDestroyed = function() return false end
     t.getGUID = function() return tostring(t) end
     t.drop = function() end
+    t.flip = function() t.flipped = true; local r = t.rot or { x = 0, y = 0, z = 0 }; t.rot = { x = r.x, y = r.y, z = (r.z + 180) % 360 } end
     t.setInvisibleTo = function(c) t.invisible = c end
     t.destruct = function()
         t.destroyed = true

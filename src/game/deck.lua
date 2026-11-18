@@ -3,10 +3,12 @@
 -- and the "Deal to 6" button (top-left panel) that tops every hand up to 6.
 
 -- Draw cards into a player's hand FACE DOWN (user, 11-17: TTS's deal turns the card face up on the way, and
--- everyone saw it). The card is taken off the deck face down, glides to the hand still face down, and the hand turns
--- it to face its owner once it's in. A card that didn't make it in is put straight into the hand.
+-- everyone saw it). The card is taken off the deck face down, glides to the hand still face down, and is flipped
+-- once it's in the hand, where only its owner sees it (user, 11-18: the hand doesn't turn it over by itself). A card
+-- that didn't make it in is put straight into the hand.
 DRAW_GAP = 0.25                -- seconds between cards when drawing several
 DRAW_CHECK = 2.0               -- seconds after which a card not in the hand is put there directly
+DRAW_FLIP_DELAY = 0.2          -- once it's in the hand, wait this long (the hand settles it), then flip it face up
 function drawCardsFaceDown(color, n, done)
     local k = 0
     local function one()
@@ -25,13 +27,26 @@ function drawCardsFaceDown(color, n, done)
                         card.setPositionSmooth(target, false, false)
                     end)
                 end, 1)
-                Wait.time(function()
+                local function inHand()
+                    for _, o in ipairs(Player[color].getHandObjects() or {}) do if o == card then return true end end
+                    return false
+                end
+                local function faceUp()
                     pcall(function()
                         if card.isDestroyed() then return end
-                        for _, o in ipairs(Player[color].getHandObjects() or {}) do if o == card then return end end
-                        card.setPosition(target)
+                        local z = card.getRotation().z % 360
+                        if z > 90 and z < 270 then card.flip() end
                     end)
-                end, DRAW_CHECK)
+                end
+                -- flip it as soon as it's in the hand; if it never gets there, put it there and flip it
+                Wait.condition(function() Wait.time(faceUp, DRAW_FLIP_DELAY) end,
+                    function() local ok, r = pcall(inHand); return ok and r end, DRAW_CHECK, function()
+                        pcall(function()
+                            if card.isDestroyed() then return end
+                            card.setPosition(target)
+                            Wait.time(faceUp, DRAW_FLIP_DELAY + 0.3)
+                        end)
+                    end)
             end
             deck.takeObject({ position = { x = dp.x, y = dp.y + 1.5, z = dp.z }, rotation = { 0, ht.rotation.y, 180 },
                               smooth = false, callback_function = glide })
