@@ -1,3 +1,4 @@
+-- The "6 Player" button: sets the table up for 6 players (setup.lua preGameSetup).
 --#include "../setup.lua"
 --#include "../buttons.lua"
 

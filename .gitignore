@@ -1,0 +1,4 @@
+build/
+.DS_Store
+# data written by the tools (game logs and flags contain player names)
+data/

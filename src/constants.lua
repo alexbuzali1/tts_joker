@@ -1,3 +1,7 @@
+-- constants.lua
+-- Fixed values for the table: object GUIDs, seat colours, board / marble / card geometry and the meshes used.
+-- Shared by the Global script and the object scripts (the player-count and Start Game buttons).
+
 --Default object GUID's
 FOUR_PLAYER_BUTTON_GUID = "34e910"
 SIX_PLAYER_BUTTON_GUID = "3acad9"
@@ -8,7 +12,7 @@ START_GAME_BUTTON_GUID = "0132bf"
 MAT_GUID = "b62603"
 DECK_GUID = "864748"
 
---Player colors
+--Player colors: the seats of each table size, in turn order (seat 1, 2, ...). Teams: odd seats vs even seats.
 PLAYER_COLORS = {
 [4] = {"White","Orange","Green","Purple"}, 
 [6] = {"White","Red","Yellow","Green","Blue","Pink"}, 
@@ -28,7 +32,6 @@ BOARD_Y = 1.16
 BOARD_SCALES = {[4] = 2.95, [6] = 2.10, [8] = 1.70}
 
 --Marbles
-COLOR_PICKER_GRID_SIZE = 10
 COLLISION_DISTANCE_THRESHOLDS = {[4] = 1, [6] = .7, [8] = .59}
 MARBLE_SCALES = {[4] = 1.15, [6] = 0.81, [8] = 0.66}
 MARBLE_HEIGHTS = {[4] = 1.75, [6] = 1.85, [8] = 1.70}
@@ -48,8 +51,8 @@ DISCARD_PILE_LINK = "https://steamusercontent-a.akamaihd.net/ugc/113811765053352
 DISCARD_PILE_SCALE = {1.9,.2, 1.9}
 DISCARD_TRIGGER_SCALE = {2.5, 1.5, 3.5}
 
---Cards
-local CARD_NAMES = {
+--Cards (the deck is labelled with these names in order when the table is set up; see cards.lua labelDeck)
+CARD_NAMES = {
     "Ace of Spades", "2 of Spades", "3 of Spades", "4 of Spades", "5 of Spades", "6 of Spades", "7 of Spades", 
     "8 of Spades", "9 of Spades", "10 of Spades", "Jack of Spades", "Queen of Spades", "King of Spades",
     "Ace of Hearts", "2 of Hearts", "3 of Hearts", "4 of Hearts", "5 of Hearts", "6 of Hearts", "7 of Hearts", 

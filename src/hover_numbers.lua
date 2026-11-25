@@ -1,6 +1,11 @@
+-- hover_numbers.lua
+-- The distance numbers 1-13 that appear in front of a marble you hover over (only you see yours). This file
+-- spawns the number pieces when the table is set up: 13 per seat, parked out of sight above the table. Placing
+-- them on hover is game/hover.lua (Global script).
 --#include "constants.lua"
 --#include "helpers.lua"
 
+-- Spawn the 13 number pieces for every seat. Returns { [seat colour] = { piece 1, ..., piece 13 } }.
 function spawnHoverNumbers(num_players)
 
     local player_colors = PLAYER_COLORS[num_players]
@@ -14,7 +19,7 @@ function spawnHoverNumbers(num_players)
         for j = 1,#HOVER_NUMBER_MESHES do
             hover_numbers[j] = spawnObjectJSON({
             json = hoverNumberJSON(HOVER_NUMBER_MESHES[j],HOVER_NUMBER_GUIDS[j]),
-            position = {4+.5*j, 10 + i, 0}, --FIX THIS LATER
+            position = {4+.5*j, 10 + i, 0},        -- parked above the table until needed
             rotation = {0,0,0},
             callback_function = function(obj)
                 obj.setInvisibleTo(PLAYER_COLORS[num_players])
@@ -28,6 +33,7 @@ function spawnHoverNumbers(num_players)
     return hover_numbers_by_player
 end
 
+-- The saved-object JSON of one number piece: a locked, untinted custom model with a flat collider.
 function hoverNumberJSON(meshURL, guid)
     local obj = {
         GUID = guid,
@@ -77,52 +83,4 @@ function hoverNumberJSON(meshURL, guid)
         XmlUI = "",
     }
     return JSON.encode(obj)
-end
-
-function arrangeHoverNumbers(player_color, marble_index, team_number, marble_color)
-
-    hideHoverNumbers(player_color)
-    local hover_numbers = Global.getTable("hover_numbers_by_player")[player_color]
-    local non_start_points = Global.getTable("non_start_points")
-    local alpha = (2*math.pi/Global.getVar("num_players")) * 180/math.pi
-
-    local player_colors = shallowCopyTable(PLAYER_COLORS[Global.getVar("num_players")])
-    tableRemoveByValue(player_colors, player_color)
-
-    local first_goal_index = 4 + (team_number-1) * 23
-    local last_goal_index = first_goal_index + 4
-    
-    local numbers_arranged = 0
-    local i = 1
-    local potential_index
-
-    while numbers_arranged < 13 do
-
-        potential_index = (((marble_index + i) - 1) % #non_start_points) + 1
-
-        if potential_index % 23 == 4 and potential_index ~= first_goal_index then
-            i = i + 5
-        else 
-            hover_numbers[numbers_arranged+1].setPosition(non_start_points[potential_index]["position"])
-            hover_numbers[numbers_arranged+1].setRotation({HOVER_NUMBER_ROTATION,alpha * (team_number - 1), 0})
-            hover_numbers[numbers_arranged+1].setInvisibleTo(player_colors)
-            hover_numbers[numbers_arranged+1].highlightOn(marble_color)
-            hover_numbers[numbers_arranged+1].setColorTint(HOVER_NUMBER_COLOR)
-            numbers_arranged = numbers_arranged + 1
-            i = i + 1
-
-            if potential_index == last_goal_index then return end
-        end
-    end
-end
-
-function hideHoverNumbers(player_color)
-
-    local hover_numbers = Global.getTable("hover_numbers_by_player")[player_color]
-    local player_colors = PLAYER_COLORS[Global.getVar("num_players")]
-
-    for i = 1,13 do
-        hover_numbers[i].setInvisibleTo(player_colors)
-        hover_numbers[i].setPosition({4+.5*i, 10, 0})
-    end
 end

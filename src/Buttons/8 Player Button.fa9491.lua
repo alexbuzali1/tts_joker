@@ -1,3 +1,4 @@
+-- The "8 Player" button: sets the table up for 8 players (setup.lua preGameSetup).
 --#include "../setup.lua"
 --#include "../buttons.lua"
 

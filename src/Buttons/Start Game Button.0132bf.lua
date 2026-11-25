@@ -1,3 +1,4 @@
+-- The Start Game button: shown once the table size is chosen; starts the game (setup.lua startGame).
 --#include "../setup.lua"
 
 function onLoad()
