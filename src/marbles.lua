@@ -47,7 +47,7 @@ function marbleCollisionDetection(registered_object, info)
             end
 
             --Enemy bonk
-            if this_marble.getVar("team_number") % 2 != other_marble.getVar("team_number") % 2 then
+            if this_marble.getVar("team_number") % 2 ~= other_marble.getVar("team_number") % 2 then
                 bonkAnimation(this_marble,findEmptyStartPosition(this_marble))
 
             --Friendly bonk
