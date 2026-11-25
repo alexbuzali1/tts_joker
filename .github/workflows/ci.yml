@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.4"
+
+      - uses: leafo/gh-actions-luarocks@v4
+
+      # luafilesystem: the current build.lua needs it (require "lfs")
+      - name: Install luacheck and luafilesystem
+        run: luarocks install luacheck && luarocks install luafilesystem
+
+      - name: Build
+        run: lua build.lua
+
+      # luacheck on the built scripts (see .luacheckrc for what it checks)
+      - name: Lint
+        run: luacheck build/*.lua
+
+      # build + luac syntax check, wiring check, and every test suite (once the repo has tests)
+      - name: Tests
+        run: |
+          if [ -x tests/run_all.sh ]; then
+            ./tests/run_all.sh
+          else
+            echo "No tests/run_all.sh yet - skipping"
+          fi
